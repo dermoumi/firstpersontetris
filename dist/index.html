@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <title>First-person Tetris</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="MobileOptimized" content="320">
+    <meta http-equiv="cleartype" content="off">
+    <meta name="theme-color" content="#000000">
+    <meta name="description" content="HTML5 port/clone of firstpersontetris.com">
+
+    <link rel="manifest" href="manifest.json">
+
+    <style type="text/css">
+      @font-face {
+        font-family: 'pixel-emulator';
+        font-display: swap;
+        src: url('assets/fonts/pixel-emulator.woff2') format('woff2'),
+             url('assets/fonts/pixel-emulator.woff') format('woff');
+      }
+
+      html, body, #game, #splash {
+        height: 100%;
+        font-size: 24px;
+      }
+
+      body {
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+        font-family: 'pixel-emulator', sans-serif;
+      }
+
+      #splash, noscript {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        position: absolute;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        width: 100%;
+        background-color: #FFF;
+        color: #000;
+        line-height: 1.5em;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="game"></div>
+    <div id="splash">
+      <div>
+        Loading...
+      </div>
+    </div>
+    <noscript>
+      <div id="noscript">Enable Javascript to play this game</div>
+    </noscript>
+    <script src="runtime/runtime.js"></script>
+    <script src="runtime/bootstrap.js"></script>
+  </body>
+</html>

@@ -1,0 +1,15 @@
+{
+    "short_name": "FP Tetris",
+    "name": "First-Person Tetris",
+    "display": "standalone",
+    "background_color": "#000000",
+    "theme_color": "#000000",
+    "start_url": "/?utm_source=a2hs",
+    "icons": [
+      {
+        "src": "/assets/icon.png",
+        "type": "image/png",
+        "sizes": "512x512"
+      }
+    ]
+  }
