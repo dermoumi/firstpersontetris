@@ -14,7 +14,7 @@
 
     <style type="text/css">
       @font-face {
-        font-family: 'pixel-emulator';
+        font-family: 'main';
         font-display: swap;
         src: url('assets/fonts/pixel-emulator.woff2') format('woff2'),
              url('assets/fonts/pixel-emulator.woff') format('woff');
@@ -29,7 +29,7 @@
         margin: 0;
         padding: 0;
         overflow: hidden;
-        font-family: 'pixel-emulator', sans-serif;
+        font-family: 'main', sans-serif;
       }
 
       #splash, noscript {
@@ -42,8 +42,8 @@
         left: 0;
         bottom: 0;
         width: 100%;
-        background-color: #FFF;
-        color: #000;
+        background-color: #000;
+        color: #FFF;
         line-height: 1.5em;
       }
     </style>
@@ -51,9 +51,7 @@
   <body>
     <div id="game"></div>
     <div id="splash">
-      <div>
-        Loading...
-      </div>
+      Loading...
     </div>
     <noscript>
       <div id="noscript">Enable Javascript to play this game</div>

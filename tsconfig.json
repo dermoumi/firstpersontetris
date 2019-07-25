@@ -1,12 +1,18 @@
 {
   "compilerOptions": {
-    "outDir": "./dist/",
-    "noImplicitAny": true,
-    "sourceMap": true,
-    "module": "esnext",
-    "target": "es5",
-    "lib": ["es6", "dom"],
-    "allowJs": true,
-    "strict": true,
-  }
+      "baseUrl": "./src",
+      "module": "commonjs",
+      "noImplicitAny": true,
+      "removeComments": true,
+      "sourceMap": true,
+      "preserveConstEnums": true,
+      "lib": ["es6", "dom"],
+      "strict": true,
+  },
+  "include": [
+      "./**/*.ts"
+  ],
+  "exclude": [
+      "./node_modules"
+  ]
 }
