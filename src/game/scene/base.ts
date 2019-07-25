@@ -1,5 +1,5 @@
-import GameApp from '../app'
-import Input from '../input'
+import GameApp from 'game/app'
+import Input from 'game/input'
 import SceneManager from './manager'
 import * as Pixi from 'pixi.js'
 

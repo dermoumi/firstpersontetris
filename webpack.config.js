@@ -29,6 +29,7 @@ module.exports = (env, argv) => {
     // Only resolve .ts and .js files
     resolve: {
       extensions: ['.ts', '.js'],
+      modules: [path.resolve(__dirname, 'src'), 'node_modules'],
     },
     // Output files as dist/runtime/<module/chunk name>.js
     output: {

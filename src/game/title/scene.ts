@@ -1,8 +1,8 @@
 import * as Pixi from 'pixi.js'
-import GameApp from '../app'
-import Input from '../input'
-import SceneBase from '../scene/base'
-import SceneStage from '../stage/scene'
+import GameApp from 'game/app'
+import Input from 'game/input'
+import SceneBase from 'game/scene/base'
+import SceneStage from 'game/stage/scene'
 
 export default class TitleScene extends SceneBase {
   text: Pixi.Text

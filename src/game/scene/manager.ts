@@ -1,4 +1,4 @@
-import GameApp from '../app'
+import GameApp from 'game/app'
 import SceneBase from './base'
 
 export type SceneConstructor = new (app: GameApp, userdata: Object) => SceneBase

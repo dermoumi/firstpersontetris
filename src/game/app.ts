@@ -1,7 +1,7 @@
 import * as Pixi from 'pixi.js'
-import SceneManager from './scene/manager'
-import TitleScene from './title/scene'
-import Input from './input'
+import SceneManager from 'game/scene/manager'
+import TitleScene from 'game/title/scene'
+import Input from 'game/input'
 
 export interface SizeObject {
   width: number
