@@ -4,12 +4,11 @@ import SceneManager from './manager'
 import * as Pixi from 'pixi.js'
 
 export default class SceneBase {
-  app: GameApp
-  manager: SceneManager
-  stage = new Pixi.Container()
-  _isInputFrozen = false
+  protected app: GameApp
+  protected manager: SceneManager
+  protected stage = new Pixi.Container()
 
-  constructor(app: GameApp, _userdata: Object) {
+  protected constructor(app: GameApp) {
     console.debug(`${this.constructor.name}: constructor`)
     this.app = app
     this.manager = app.sceneManager
@@ -17,43 +16,46 @@ export default class SceneBase {
     app.stage.addChild(this.stage)
   }
 
-  onEnter() {
+  public onEnter(): void {
     console.debug(`${this.constructor.name}: onEnter()`)
     this._setStageVisible(true)
   }
 
-  onLeave() {
+  public onLeave(): void {
     console.debug(`${this.constructor.name}: onLeave()`)
     this._setStageVisible(false)
   }
 
-  onDestroy() {
+  public onDestroy(): void {
     console.debug(`${this.constructor.name}: onDestroy()`)
     this.app.stage.removeChild(this.stage)
   }
 
-  onResize(_width: number, _height: number) {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  public onResize(_width: number, _height: number): void {
     console.debug(`${this.constructor.name}: onResize()`)
   }
 
-  onUpdate(_frameTime: number): false | void {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  public onUpdate(_frameTime: number): false | void {
     // Nothing to do
   }
 
-  onProcessInput(_input: Input, _frameTime: number) {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  public onProcessInput(_input: Input, _frameTime: number): void {
     // Nothing to do
   }
 
-  isInputEnabled(): boolean {
-    return !this._isInputFrozen
+  public isInputEnabled(): boolean {
+    return true
   }
 
-  _setStageVisible(visible: boolean) {
+  private _setStageVisible(visible: boolean): void {
     this.stage.visible = visible
   }
 
-  _resize() {
-    const {width, height} = this.app.getSize()
+  public _resize(): void {
+    const { width, height } = this.app.getSize()
     this.onResize(width, height)
   }
 }

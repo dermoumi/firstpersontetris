@@ -1,41 +1,41 @@
 interface ButtonMap {
-  [key: string]: number
+  [key: string]: number;
 }
 
 interface BindingsMap {
-  [key: string]: string
+  [key: string]: string;
 }
 
 interface KeyNameMap {
-  [key: string]: string
+  [key: string]: string;
 }
 
 interface AxisThresholdMap {
-  [axis: string]: number
+  [axis: string]: number;
 }
 
 type AxisThreshold = number | AxisThresholdMap
 
 export default class Input {
-  ids: ButtonMap = {}
-  idCount = 0
-  oldState = 0
-  currentState = 0
-  newState = 0
-  repeatState = 0
-  newRepeatState = 0
-  keyNames: KeyNameMap = {}
-  bindings: BindingsMap = {}
-  axes = { x: 0, y: 0 }
-  axisThreshold: AxisThreshold = 0.2
-  level3Supported: boolean
+  private ids: ButtonMap = {}
+  private idCount = 0
+  private oldState = 0
+  private currentState = 0
+  private newState = 0
+  private repeatState = 0
+  private newRepeatState = 0
+  private keyNames: KeyNameMap = {}
+  private bindings: BindingsMap = {}
+  private axes = { x: 0, y: 0 }
+  private axisThreshold: AxisThreshold = 0.2
+  private level3Supported: boolean
 
-  constructor() {
+  public constructor() {
     this.level3Supported = (new KeyboardEvent('dummy')).code !== undefined
     const keyAttr = this.level3Supported ? 'code' : 'keyCode'
 
     // Register event for key down
-    window.addEventListener('keydown', (event) => {
+    window.addEventListener('keydown', (event): void => {
       // Get the button that's pressed
       const keyCode = event[keyAttr].toString()
       const button = this.bindings[keyCode]
@@ -58,7 +58,7 @@ export default class Input {
     }, false)
 
     // Register event for key up
-    window.addEventListener('keyup', (event) => {
+    window.addEventListener('keyup', (event): void => {
       // Get the button's binding
       const keyCode = event[keyAttr].toString()
       const button = this.bindings[keyCode]
@@ -72,13 +72,13 @@ export default class Input {
     }, false)
 
     // Listen for when focus is lost
-    window.addEventListener('blur', () => {
+    window.addEventListener('blur', (): void => {
       this.newState = 0
       this.newRepeatState = 0
     }, false)
   }
 
-  getButtonId(button: string): number {
+  private getButtonId(button: string): number {
     let id = this.ids[button]
     if (id === undefined) {
       id = 1 << this.idCount++
@@ -88,22 +88,22 @@ export default class Input {
     return id
   }
 
-  getAxisThreshold(axis: string): number {
+  public getAxisThreshold(axis: string): number {
     return typeof this.axisThreshold === 'number'
       ? this.axisThreshold
       : (this.axisThreshold[axis] || 0)
   }
 
-  getAxisValue(axis: string): number {
+  public getAxisValue(axis: string): number {
     const axisValue = 0 // TODO: Implement this
     return axisValue > this.getAxisThreshold(axis) ? axisValue : 0
   }
 
-  getKeyName(button: string): string {
+  public getKeyName(button: string): string {
     return this.keyNames[button] || button
   }
 
-  setBindings(newBindings: BindingsMap, newAxisThreshold: AxisThreshold | null = null): Input {
+  public setBindings(newBindings: BindingsMap, newAxisThreshold: AxisThreshold | null = null): Input {
     this.ids = {}
     this.idCount = 0
     this.oldState = 0
@@ -118,7 +118,7 @@ export default class Input {
     return this
   }
 
-  update() {
+  public update(): void {
     this.oldState = this.currentState
     this.currentState = this.newState
 
@@ -153,7 +153,7 @@ export default class Input {
     }
   }
 
-  isPressed(button: string, repeat: boolean = false): boolean {
+  public isPressed(button: string, repeat: boolean = false): boolean {
     const buttonId = this.getButtonId(button)
 
     const result = (repeat && (this.repeatState & buttonId)) ||
@@ -162,14 +162,14 @@ export default class Input {
     return !!result
   }
 
-  isReleased(button: string): boolean {
+  public isReleased(button: string): boolean {
     const buttonId = this.getButtonId(button)
 
     const result = !(this.currentState & buttonId) && (this.oldState & buttonId)
     return !!result
   }
 
-  isDown(button: string): boolean {
+  public isDown(button: string): boolean {
     const buttonId = this.getButtonId(button)
 
     const result = this.currentState & buttonId

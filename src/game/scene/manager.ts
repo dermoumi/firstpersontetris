@@ -1,19 +1,17 @@
 import GameApp from 'game/app'
 import SceneBase from './base'
 
-export type SceneConstructor = new (app: GameApp, userdata: Object) => SceneBase
-
 export default class SceneManager {
-  sceneStack: SceneBase[] = []
-  currentScene: SceneBase | null = null
-  app: GameApp
-  isDirty = false // True whene scene stack changes during an update
+  private sceneStack: SceneBase[] = []
+  private currentScene: SceneBase | null = null
+  private app: GameApp
+  private isDirty = false // True whene scene stack changes during an update
 
-  constructor(app: GameApp) {
+  public constructor(app: GameApp) {
     this.app = app
   }
 
-  update(frameTime: number): boolean {
+  public update(frameTime: number): boolean {
     // Trigger onLeave and onEnter events when there's a new scene
     if (this.sceneStack[0] !== this.currentScene) {
       if (this.currentScene) this.currentScene.onLeave()
@@ -32,14 +30,14 @@ export default class SceneManager {
     }
 
     // Update all scenes until one of them returns 'false' or sceneStack changes
-    this.sceneStack.some((scene) => {
+    this.sceneStack.some((scene): boolean => {
       return scene.onUpdate(frameTime) === false || this.isDirty
     })
 
     return !this.isDirty
   }
 
-  clear(): SceneManager {
+  public clear(): SceneManager {
     // Call onLeave on the current scene
     if (this.currentScene) {
       this.currentScene.onLeave()
@@ -58,10 +56,7 @@ export default class SceneManager {
     return this
   }
 
-  push(SceneClass: SceneConstructor, userdata: Object = {}): SceneManager {
-    // Setup the new scene
-    const newScene = new SceneClass(this.app, userdata)
-
+  public push(newScene: SceneBase): SceneManager {
     // Add the scene to the scene stack
     this.sceneStack.unshift(newScene)
     this.isDirty = true
@@ -69,15 +64,15 @@ export default class SceneManager {
     // Initial resize of the scene
     newScene._resize()
 
-    return this;
+    return this
   }
 
-  switchTo(SceneClass: SceneConstructor, userdata: Object = {}): SceneManager {
+  public switchTo(newScene: SceneBase): SceneManager {
     // Clear all the scenes the push the new one
-    return this.clear().push(SceneClass, userdata)
+    return this.clear().push(newScene)
   }
 
-  pop(): SceneManager {
+  public pop(): SceneManager {
     // Don't do anything if there's no scene
     if (this.sceneStack.length === 0) return this
 
@@ -94,8 +89,8 @@ export default class SceneManager {
     return this
   }
 
-  updateScreenSize(width: number, height: number): SceneManager {
-    this.sceneStack.forEach((scene) => {
+  public updateScreenSize(width: number, height: number): SceneManager {
+    this.sceneStack.forEach((scene): void => {
       scene.onResize(width, height)
     })
 

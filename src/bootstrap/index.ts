@@ -1,23 +1,23 @@
 declare class FontFace {
-  constructor(fontFamily: string, fontSource: string)
-  load(): Promise<null>
+  public constructor(fontFamily: string, fontSource: string);
+  public load(): Promise<void>;
 
-  family: string
+  public family: string;
 }
 
-function hideSplash() {
+function hideSplash(): void {
   const splash = document.getElementById('splash')
   if (splash) document.body.removeChild(splash)
 }
 
 // Lazily load the game app
-import(/* webpackChunkName: "game" */ '../game/app').then(async (module) => {
+import(/* webpackChunkName: "game" */ '../game/app').then(async (module): Promise<void> => {
   // Make sure the container element exists
   const container = document.getElementById('game')
   if (!container) {
     // TODO: Show this as an alert
     console.error('Could not find container element')
-    return;
+    return
   }
 
   // Initialize an instance of the game app
@@ -34,7 +34,7 @@ import(/* webpackChunkName: "game" */ '../game/app').then(async (module) => {
     }]
 
     try {
-      await Promise.all(fonts.map((font) => {
+      await Promise.all(fonts.map((font): Promise<void> => {
         const fontFace = new FontFace(font.family, font.source)
         return fontFace.load()
       }))

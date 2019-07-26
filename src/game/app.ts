@@ -4,19 +4,19 @@ import TitleScene from 'game/title/scene'
 import Input from 'game/input'
 
 export interface SizeObject {
-  width: number
-  height: number
+  width: number;
+  height: number;
 }
 
 export default class Game {
-  container: HTMLElement
-  pixi: Pixi.Application
-  lastTimestamp = 0
-  stage = new Pixi.Container()
-  sceneManager = new SceneManager(this)
-  input = new Input()
+  private container: HTMLElement
+  private pixi: Pixi.Application
+  private lastTimestamp = 0
+  public stage = new Pixi.Container()
+  public sceneManager = new SceneManager(this)
+  public input = new Input()
 
-  constructor(container: HTMLElement) {
+  public constructor(container: HTMLElement) {
     this.container = container
 
     this.pixi = new Pixi.Application({
@@ -39,10 +39,10 @@ export default class Game {
     })
 
     // Start with the title scene
-    this.sceneManager.switchTo(TitleScene)
+    this.sceneManager.switchTo(new TitleScene(this))
   }
 
-  run() {
+  public run(): void {
     // Handle window resizes
     this.onResize()
     window.addEventListener('resize', this.onResize.bind(this), false)
@@ -61,14 +61,14 @@ export default class Game {
     }
   }
 
-  onResize() {
+  private onResize(): void {
     const width = this.container.clientWidth
     const height = this.container.clientHeight
     this.pixi.renderer.resize(width, height)
     this.sceneManager.updateScreenSize(width, height)
   }
 
-  update(timestamp: number) {
+  private update(timestamp: number): void {
     // Calculate frametime
     const frameTime = (timestamp - this.lastTimestamp) / 1000
     this.lastTimestamp = timestamp
@@ -86,7 +86,7 @@ export default class Game {
     requestAnimationFrame(this.update.bind(this))
   }
 
-  getSize(): SizeObject {
+  public getSize(): SizeObject {
     return {
       width: this.pixi.renderer.width,
       height: this.pixi.renderer.height,
