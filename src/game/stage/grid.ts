@@ -57,7 +57,7 @@ export default class StageGrid extends Pixi.Container {
         if (x < 0 || x >= WIDTH) return true
 
         const y = gridY + blockY
-        if (y >= HEIGHT) return true
+        if (y < 0 || y >= HEIGHT) return true
 
         return this._data[y][x] !== 0
       })
