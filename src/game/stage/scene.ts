@@ -170,11 +170,22 @@ export default class StageScene extends SceneBase {
 
     let playerX = this._playerX
     let collides = this._grid.collidesWith(this._currentTetromino, playerX, this._playerY, nextAngle)
+    const halfSize = Math.floor(this._currentTetromino.getSize() / 2)
 
-    // Check if it still collides if moved one block to the left or one block to the right
+    // Check if it still collides if moved n blocks to the left or n blocks to the right
     if (collides && this._hasWallKick) {
-      for (let i = 0; i < 2; ++i) {
-        const shiftedPlayerX = this._playerX - 1 + i
+      let shiftedPlayerX
+      for (let i = 1; i <= halfSize; i++) {
+        // Test from the left
+        shiftedPlayerX = this._playerX - i
+        collides = this._grid.collidesWith(this._currentTetromino, shiftedPlayerX, this._playerY, nextAngle)
+        if (!collides) {
+          playerX = shiftedPlayerX
+          break
+        }
+
+        // Test from the right
+        shiftedPlayerX = this._playerX + i
         collides = this._grid.collidesWith(this._currentTetromino, shiftedPlayerX, this._playerY, nextAngle)
         if (!collides) {
           playerX = shiftedPlayerX
@@ -184,7 +195,6 @@ export default class StageScene extends SceneBase {
     }
 
     // Allow blocks to rotate even if there's not enough space below them by shifting them a bit upward
-    // const halfSize = Math.floor(this._currentTetromino.getSize() / 2)
     // if (collides) {
     //   for (let i = 0; i < halfSize; ++i) {
     //     const playerY = this._playerY - i
