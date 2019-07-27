@@ -1,10 +1,11 @@
 import * as Pixi from 'pixi.js'
 import Tetromino, { TetrominoAngle } from './tetromino'
+import Block, { BlockType, BLOCK_SIZE, BLOCK_SPACING } from './block'
+
+export const CELL_SIZE = BLOCK_SIZE + BLOCK_SPACING
 
 export const WIDTH = 10
 export const HEIGHT = 20
-export const BLOCK_SIZE = 16
-export const BLOCK_SPACING = 1
 export const COLORS = [
   0xFF0000,
   0x00FF00,
@@ -27,18 +28,17 @@ export default class StageGrid extends Pixi.Container {
   public update(): void {
     this.removeChildren()
 
-    const blockSize = BLOCK_SIZE + BLOCK_SPACING
-
     this._data.forEach((row: number[], y: number): void => {
       row.forEach((colorIndex: number, x: number): void => {
         // Don't do anything if cell is empty
         if (colorIndex === 0) return
 
         // Make a block graphic
-        // TODO: Use an image instead
-        const block = new Pixi.Graphics()
-        block.beginFill(COLORS[colorIndex - 1])
-        block.drawRect(x * blockSize, y * blockSize, BLOCK_SIZE, BLOCK_SIZE)
+        const color = COLORS[colorIndex - 1]
+        const type = colorIndex == 1 ? BlockType.Block1 : BlockType.Block2
+        const block = new Block(color, type)
+        block.position.x = x * CELL_SIZE
+        block.position.y = y * CELL_SIZE
 
         // Add the block to the container
         this.addChild(block)
@@ -57,7 +57,7 @@ export default class StageGrid extends Pixi.Container {
         if (x < 0 || x >= WIDTH) return true
 
         const y = gridY + blockY
-        if (y < 0 || y >= HEIGHT) return true
+        if (y >= HEIGHT) return true
 
         return this._data[y][x] !== 0
       })

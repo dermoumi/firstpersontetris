@@ -1,10 +1,14 @@
 import SceneBase from 'game/scene/base'
 import GameApp from 'game/app'
 import Tetromino from './tetromino'
-import StageGrid, { WIDTH as GRID_WIDTH, BLOCK_SIZE, BLOCK_SPACING } from './grid'
+import StageGrid, { WIDTH as GRID_WIDTH, CELL_SIZE } from './grid'
 import Input from 'game/input'
+import * as Pixi from 'pixi.js'
 
-const CELL_SIZE = BLOCK_SIZE + BLOCK_SPACING
+const GRID_SCREEN_X = 192
+const GRID_SCREEN_Y = 80
+const NEXT_SCREEN_X = 384
+const NEXT_SCREEN_Y = 210
 
 enum GameMode {
   Normal,
@@ -38,13 +42,25 @@ export default class StageScene extends SceneBase {
   private _hasWallKick = true
   private _hasLockDelay = false
 
+  private _screen = new Pixi.Container()
+
   public constructor(app: GameApp) {
     super(app)
 
-    this.stage.addChild(this._grid)
+    this._screen.sortableChildren = true
+
+    this._grid.position.x = GRID_SCREEN_X
+    this._grid.position.y = GRID_SCREEN_Y
+    this._screen.addChild(this._grid)
+
+    const screenUi = Pixi.Sprite.from(GameApp.resources.stage.texture)
+    screenUi.zIndex = 100
+    this._screen.addChild(screenUi)
 
     this._nextTetromino = this._getNextTetromino()
     this._currentTetromino = this._spawnTetromino()
+
+    this.stage.addChild(this._screen)
   }
 
   public onUpdate(frameTime: number): void {
@@ -87,17 +103,18 @@ export default class StageScene extends SceneBase {
     if (this._gameMode === GameMode.DarkRoom) {
       tetromino.visible = false
     } else {
-      tetromino.position.x = (2 + GRID_WIDTH) * CELL_SIZE
-      tetromino.position.y = 2 * CELL_SIZE
+      const [centerX, centerY] = tetromino.getCenter()
+      tetromino.position.x = NEXT_SCREEN_X + CELL_SIZE * (2 - centerX)
+      tetromino.position.y = NEXT_SCREEN_Y + CELL_SIZE * (2 - centerY)
     }
 
-    this.stage.addChild(tetromino)
+    this._screen.addChild(tetromino)
     return tetromino
   }
 
   private _spawnTetromino(): Tetromino {
     if (this._currentTetromino) {
-      this.stage.removeChild(this._currentTetromino)
+      this._screen.removeChild(this._currentTetromino)
     }
 
     const tetromino = this._nextTetromino
@@ -105,11 +122,11 @@ export default class StageScene extends SceneBase {
 
     this._nextTetromino = this._getNextTetromino()
 
-    this._playerX = Math.floor(GRID_WIDTH / 2 - tetromino.getSize() / 2)
-    this._playerY = 0
+    this._playerX = Math.ceil(GRID_WIDTH / 2 - tetromino.getSize() / 2)
+    this._playerY = -tetromino.getOffset()
 
-    tetromino.position.x = CELL_SIZE * this._playerX
-    tetromino.position.y = CELL_SIZE * this._playerY
+    tetromino.position.x = GRID_SCREEN_X + CELL_SIZE * this._playerX
+    tetromino.position.y = GRID_SCREEN_Y + CELL_SIZE * this._playerY
 
     // TODO: Check collision and gameover
 
@@ -142,7 +159,7 @@ export default class StageScene extends SceneBase {
       console.debug('THUD!')
     } else {
       this._playerX--
-      this._currentTetromino.position.x = this._playerX * CELL_SIZE
+      this._currentTetromino.position.x = GRID_SCREEN_X + this._playerX * CELL_SIZE
     }
   }
 
@@ -152,7 +169,7 @@ export default class StageScene extends SceneBase {
       console.debug('THUD!')
     } else {
       this._playerX++
-      this._currentTetromino.position.x = this._playerX * CELL_SIZE
+      this._currentTetromino.position.x = GRID_SCREEN_X + this._playerX * CELL_SIZE
     }
   }
 
@@ -161,7 +178,7 @@ export default class StageScene extends SceneBase {
       this._uniteTetromino()
     } else {
       this._playerY++
-      this._currentTetromino.position.y = this._playerY * CELL_SIZE
+      this._currentTetromino.position.y = GRID_SCREEN_Y + this._playerY * CELL_SIZE
     }
   }
 
@@ -211,7 +228,7 @@ export default class StageScene extends SceneBase {
       console.debug('THUD!')
     } else {
       this._playerX = playerX
-      this._currentTetromino.position.x = this._playerX * CELL_SIZE
+      this._currentTetromino.position.x = GRID_SCREEN_X + this._playerX * CELL_SIZE
       this._currentTetromino.setAngle(nextAngle)
       this._currentTetromino.update()
 

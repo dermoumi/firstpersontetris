@@ -39,6 +39,7 @@ import(/* webpackChunkName: "game" */ '../game/app').then(async (module): Promis
         return fontFace.load()
       }))
 
+      await app.preload()
       app.run()
       hideSplash()
     } catch (error) {
@@ -46,6 +47,7 @@ import(/* webpackChunkName: "game" */ '../game/app').then(async (module): Promis
     }
   } else {
     // FontFace API is not available, run the game hoping the fonts are loaded
+    await app.preload()
     app.run()
     hideSplash()
   }

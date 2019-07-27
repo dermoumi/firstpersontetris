@@ -1,11 +1,13 @@
 import * as Pixi from 'pixi.js'
-import { BLOCK_SIZE, BLOCK_SPACING, COLORS } from './grid'
-
-const CELL_SIZE = BLOCK_SIZE + BLOCK_SPACING
+import { CELL_SIZE, COLORS } from './grid'
+import Block, { BlockType } from './block'
 
 export interface TetrominoType {
+  name: string;
   color: number;
   size: number;
+  offset: number;
+  center: [number, number];
   shapes: number[][][];
 }
 
@@ -18,8 +20,11 @@ export enum TetrominoAngle {
 
 export const TYPES: Record<string, TetrominoType> = {
   T: {
+    name: 'T',
     color: 0,
     size: 3,
+    offset: 1,
+    center: [1.5, 2],
     shapes: [[
       [0, 0, 0],
       [1, 1, 1],
@@ -39,8 +44,11 @@ export const TYPES: Record<string, TetrominoType> = {
     ]],
   },
   J: {
+    name: 'J',
     color: 1,
     size: 3,
+    offset: 1,
+    center: [1.5, 2],
     shapes: [[
       [0, 0, 0],
       [1, 1, 1],
@@ -60,8 +68,11 @@ export const TYPES: Record<string, TetrominoType> = {
     ]],
   },
   Z: {
+    name: 'Z',
     color: 2,
     size: 3,
+    offset: 1,
+    center: [1.5, 2],
     shapes: [[
       [0, 0, 0],
       [1, 1, 0],
@@ -73,16 +84,22 @@ export const TYPES: Record<string, TetrominoType> = {
     ]],
   },
   O: {
+    name: 'O',
     color: 0,
     size: 2,
+    offset: 0,
+    center: [1, 1],
     shapes: [[
       [1, 1],
       [1, 1],
     ]],
   },
   S: {
+    name: 'S',
     color: 1,
     size: 3,
+    offset: 1,
+    center: [1.5, 2],
     shapes: [[
       [0, 0, 0],
       [0, 1, 1],
@@ -94,8 +111,11 @@ export const TYPES: Record<string, TetrominoType> = {
     ]],
   },
   L: {
+    name: 'L',
     color: 2,
     size: 3,
+    offset: 1,
+    center: [1.5, 2],
     shapes: [[
       [0, 0, 0],
       [1, 1, 1],
@@ -115,8 +135,11 @@ export const TYPES: Record<string, TetrominoType> = {
     ]],
   },
   I: {
+    name: 'I',
     color: 0,
     size: 4,
+    offset: 2,
+    center: [2, 2.5],
     shapes: [[
       [0, 0, 0, 0],
       [0, 0, 0, 0],
@@ -151,17 +174,18 @@ export default class Tetromino extends Pixi.Container {
     this.removeChildren()
 
     const shape = this.getShape()
-    const blockColor = COLORS[this._type.color]
+    const colorIndex = this._type.color
+    const blockColor = COLORS[colorIndex]
+    const blockType = (colorIndex == 0) ? BlockType.Block1 : BlockType.Block2
 
     shape.forEach((row: number[], y: number): void => {
       row.forEach((hasBlock: number, x: number): void => {
         if (hasBlock === 0) return
 
         // Make a block graphic
-        // TODO: Use an image instead
-        const block = new Pixi.Graphics()
-        block.beginFill(blockColor)
-        block.drawRect(x * CELL_SIZE, y * CELL_SIZE, BLOCK_SIZE, BLOCK_SIZE)
+        const block = new Block(blockColor, blockType)
+        block.position.x = x * CELL_SIZE
+        block.position.y = y * CELL_SIZE
 
         this.addChild(block)
       })
@@ -187,5 +211,17 @@ export default class Tetromino extends Pixi.Container {
 
   public setAngle(angle: TetrominoAngle): void {
     this._angle = angle
+  }
+
+  public getOffset(): number {
+    return this._type.offset
+  }
+
+  public getCenter(): [number, number] {
+    return this._type.center
+  }
+
+  public getName(): string {
+    return this._type.name
   }
 }

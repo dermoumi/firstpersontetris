@@ -8,13 +8,17 @@ export interface SizeObject {
   height: number;
 }
 
-export default class Game {
+export type ResourceDict = Record<string, Pixi.LoaderResource>
+
+export default class GameApp {
   private container: HTMLElement
   private pixi: Pixi.Application
   private lastTimestamp = 0
   public stage = new Pixi.Container()
   public sceneManager = new SceneManager(this)
   public input = new Input()
+
+  public static resources: ResourceDict = {}
 
   public constructor(container: HTMLElement) {
     this.container = container
@@ -37,12 +41,12 @@ export default class Game {
       Enter: 'drop',
       Escape: 'pause',
     })
-
-    // Start with the title scene
-    this.sceneManager.switchTo(new TitleScene(this))
   }
 
   public run(): void {
+    // Start with the title scene
+    this.sceneManager.switchTo(new TitleScene(this))
+
     // Handle window resizes
     this.onResize()
     window.addEventListener('resize', this.onResize.bind(this), false)
@@ -59,6 +63,21 @@ export default class Game {
     if (splashElement) {
       document.body.removeChild(splashElement)
     }
+  }
+
+  public async preload(): Promise<void> {
+    return new Promise((resolve): void => {
+      const loader = Pixi.Loader.shared
+
+      loader.add('block1', 'assets/images/block1.gif')
+        .add('block2', 'assets/images/block2.gif')
+        .add('stage', 'assets/images/stage.png')
+
+      loader.load((_loader: Pixi.Loader, resources: ResourceDict): void => {
+        GameApp.resources = resources
+        resolve()
+      })
+    })
   }
 
   private onResize(): void {
