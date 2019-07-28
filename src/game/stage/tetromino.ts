@@ -7,7 +7,7 @@ export interface TetrominoType {
   color: number;
   size: number;
   offset: number;
-  center: [number, number];
+  center: [number, number][];
   shapes: number[][][];
 }
 
@@ -24,7 +24,12 @@ export const TYPES: Record<string, TetrominoType> = {
     color: 0,
     size: 3,
     offset: 1,
-    center: [1.5, 2],
+    center: [
+      [1.5, 2],
+      [1, 1.5],
+      [1.5, 1],
+      [2, 1.5],
+    ],
     shapes: [[
       [0, 0, 0],
       [1, 1, 1],
@@ -48,7 +53,12 @@ export const TYPES: Record<string, TetrominoType> = {
     color: 1,
     size: 3,
     offset: 1,
-    center: [1.5, 2],
+    center: [
+      [1.5, 2],
+      [1, 1.5],
+      [1.5, 1],
+      [2, 1.5],
+    ],
     shapes: [[
       [0, 0, 0],
       [1, 1, 1],
@@ -72,7 +82,10 @@ export const TYPES: Record<string, TetrominoType> = {
     color: 2,
     size: 3,
     offset: 1,
-    center: [1.5, 2],
+    center: [
+      [1.5, 2],
+      [2, 1.5],
+    ],
     shapes: [[
       [0, 0, 0],
       [1, 1, 0],
@@ -88,7 +101,9 @@ export const TYPES: Record<string, TetrominoType> = {
     color: 0,
     size: 2,
     offset: 0,
-    center: [1, 1],
+    center: [
+      [1, 1],
+    ],
     shapes: [[
       [1, 1],
       [1, 1],
@@ -99,7 +114,10 @@ export const TYPES: Record<string, TetrominoType> = {
     color: 1,
     size: 3,
     offset: 1,
-    center: [1.5, 2],
+    center: [
+      [1.5, 2],
+      [2, 1.5],
+    ],
     shapes: [[
       [0, 0, 0],
       [0, 1, 1],
@@ -115,7 +133,12 @@ export const TYPES: Record<string, TetrominoType> = {
     color: 2,
     size: 3,
     offset: 1,
-    center: [1.5, 2],
+    center: [
+      [1.5, 2],
+      [1, 1.5],
+      [1.5, 1],
+      [2, 1.5],
+    ],
     shapes: [[
       [0, 0, 0],
       [1, 1, 1],
@@ -139,7 +162,10 @@ export const TYPES: Record<string, TetrominoType> = {
     color: 0,
     size: 4,
     offset: 2,
-    center: [2, 2.5],
+    center: [
+      [2, 2.5],
+      [2.5, 2],
+    ],
     shapes: [[
       [0, 0, 0, 0],
       [0, 0, 0, 0],
@@ -162,6 +188,10 @@ export default class Tetromino extends Pixi.Container {
     super()
 
     this._type = typeof(type) === 'string' ? TYPES[type] : type
+
+    const [centerX, centerY] = this.getCenter()
+    this.pivot.x = CELL_SIZE * centerX
+    this.pivot.y = CELL_SIZE * centerY
   }
 
   public static getRandom(): Tetromino {
@@ -211,17 +241,29 @@ export default class Tetromino extends Pixi.Container {
 
   public setAngle(angle: TetrominoAngle): void {
     this._angle = angle
+
+    this.pivot.x = CELL_SIZE * this.getSize() / 2
+    this.pivot.y = CELL_SIZE * this.getSize() / 2
   }
 
   public getOffset(): number {
     return this._type.offset
   }
 
-  public getCenter(): [number, number] {
-    return this._type.center
+  public getCenter(angle = this._angle): [number, number] {
+    const { shapes, center } = this._type
+    return center[angle % shapes.length]
   }
 
   public getName(): string {
     return this._type.name
+  }
+
+  public setX(x: number): void {
+    this.position.x = x + this.pivot.x
+  }
+
+  public setY(y: number): void {
+    this.position.y = y + this.pivot.y
   }
 }

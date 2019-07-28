@@ -1,18 +1,18 @@
 {
   "compilerOptions": {
-      "baseUrl": "./src",
-      "module": "commonjs",
-      "noImplicitAny": true,
-      "removeComments": true,
-      "sourceMap": true,
-      "preserveConstEnums": true,
-      "lib": ["es6", "dom"],
-      "strict": true,
+    "baseUrl": "./src",
+    "module": "commonjs",
+    "noImplicitAny": true,
+    "removeComments": true,
+    "sourceMap": true,
+    "preserveConstEnums": true,
+    "lib": ["es6", "dom"],
+    "strict": true,
   },
   "include": [
-      "./**/*.ts"
+    "./**/*.ts"
   ],
   "exclude": [
-      "./node_modules"
+    "./node_modules"
   ]
 }
