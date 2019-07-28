@@ -1,17 +1,20 @@
 import SceneBase from 'game/scene/base'
 import GameApp from 'game/app'
 import Tetromino, { TetrominoAngle } from './tetromino'
-import StageGrid, { WIDTH as GRID_WIDTH, CELL_SIZE, CompleteRow, COLORS } from './grid'
+import StageGrid, { WIDTH as GRID_WIDTH, CELL_SIZE, CompleteRow } from './grid'
 import Input from 'game/input'
 import * as Pixi from 'pixi.js'
 import Block, { BlockType, BLOCK_SIZE } from './block'
+import * as Constants from './constants'
 
 const GRID_SCREEN_X = 192
 const GRID_SCREEN_Y = 80
 const NEXT_SCREEN_X = 384
 const NEXT_SCREEN_Y = 210
 
-const SCORE_TABLE = [40, 100, 300, 1200]
+export interface StageSceneUserdata {
+  level?: number;
+}
 
 enum GameMode {
   Normal,
@@ -63,6 +66,7 @@ export default class StageScene extends SceneBase {
 
   private _statistics: Record<string, number> = {}
   private _statisticsUi: Record<string, Pixi.Text> = {}
+  private _statsPiecesUi = new Pixi.Container()
 
   private _score = 0
   private _scoreUi!: Pixi.Text
@@ -72,8 +76,12 @@ export default class StageScene extends SceneBase {
 
   private _screen = new Pixi.Container()
 
-  public constructor(app: GameApp) {
+  public constructor(app: GameApp, userdata: StageSceneUserdata = {}) {
     super(app)
+
+    if (userdata.level) {
+      this._level = this._startingLevel = userdata.level
+    }
 
     this._screen.sortableChildren = true
 
@@ -89,7 +97,7 @@ export default class StageScene extends SceneBase {
     screenUi.zIndex = 100
     this._screen.addChild(screenUi)
 
-    this._levelUi = this._createUiText('00', 416, 314)
+    this._levelUi = this._createUiText(`0${this._level}`.substr(-2), 416, 314)
     this._linesUi = this._createUiText('000', 304, 26)
     this._scoreUi = this._createUiText('000000', 384, 106)
     this._hiScoreUi = this._createUiText('010000', 384, 58)
@@ -97,14 +105,54 @@ export default class StageScene extends SceneBase {
     const tetrominoTypes = ['T', 'Z', 'J', 'O', 'L', 'S', 'I']
     tetrominoTypes.forEach((type, i): void => {
       this._statistics[type] = 0
-      this._statisticsUi[type] = this._createUiText('000', 96, 170 + i * 32, 0xEB0000)
+      this._statisticsUi[type] = this._createUiText('000', 96, 170 + i * 32, 0xF83800)
     })
+
+    this._statsPiecesUi.position.x = 48
+    this._statsPiecesUi.position.y = 160
+    this._statsPiecesUi.zIndex = 110
+    this._screen.addChild(this._statsPiecesUi)
 
     this._nextTetromino = this._getNextTetromino()
     this._currentTetromino = this._spawnTetromino()
 
     this.stage.addChild(this._screen)
 
+    this._updateColors()
+  }
+
+  private _getColors(): [number, number] {
+    const COLORS = Constants.COLOR_TABLE
+    return COLORS[this._level % COLORS.length]
+  }
+
+  private _updateColors(): void {
+    const [color1, color2] = this._getColors()
+
+    // Update the colors of the grid
+    this._grid.setColors(color1, color2)
+
+    // Update the colors of the current and next tetrominos
+    this._nextTetromino.setColors(color1, color2)
+    this._currentTetromino.setColors(color1, color2)
+
+    // Update the statistics pieces color
+    this._statsPiecesUi.removeChildren()
+
+    const piecesOverlayTexture = GameApp.resources.stats.texture
+
+    const colorLayer = new Pixi.Graphics()
+    colorLayer.beginFill(color1)
+    colorLayer.drawRect(0, 0, piecesOverlayTexture.width, piecesOverlayTexture.height)
+    colorLayer.endFill()
+    colorLayer.beginFill(color2)
+    colorLayer.drawRect(2, 72, 38, 26)
+    colorLayer.drawRect(2, 166, 38, 26)
+    colorLayer.endFill()
+    this._statsPiecesUi.addChild(colorLayer)
+
+    const piecesOverlay = Pixi.Sprite.from(piecesOverlayTexture)
+    this._statsPiecesUi.addChild(piecesOverlay)
   }
 
   private _createUiText(text: string, posX: number, posY: number, fill = 0xFFFFFF): Pixi.Text {
@@ -160,7 +208,9 @@ export default class StageScene extends SceneBase {
 
   private _getNextTetromino(): Tetromino {
     const tetromino = Tetromino.getRandom()
-    tetromino.update()
+
+    const [color1, color2] = this._getColors()
+    tetromino.setColors(color1, color2)
 
     if (this._gameMode === GameMode.DarkRoom) {
       tetromino.visible = false
@@ -421,9 +471,12 @@ export default class StageScene extends SceneBase {
 
     this._completeRowsContainer.removeChildren()
     this._completeRowsBlocks = []
+
+    const colors = this._getColors()
+
     completeRows.forEach(({ row, blocks }): void => {
       const blockArray = blocks.map((colorIndex, index): Block => {
-        const color = COLORS[colorIndex - 1]
+        const color = colors[(colorIndex - 1) % 2]
         const type = colorIndex === 1 ? BlockType.Block1 : BlockType.Block2
 
         const block = new Block(color, type)
@@ -449,6 +502,8 @@ export default class StageScene extends SceneBase {
 
     this._level += level
     this._levelUi.text = `0${level}`.substr(-2)
+
+    this._updateColors()
   }
 
   private _increaseStatistics(type: string): void {
@@ -471,7 +526,7 @@ export default class StageScene extends SceneBase {
   }
 
   private _increaseScore(lineCount = 1): void {
-    const score = SCORE_TABLE[Math.min(lineCount - 1, 3)]
+    const score = Constants.SCORE_TABLE[Math.min(lineCount - 1, 3)]
 
     this._score += score
     this._scoreUi.text = `00000${this._score}`.substr(-6)

@@ -72,6 +72,7 @@ export default class GameApp {
       loader.add('block1', 'assets/images/block1.gif')
         .add('block2', 'assets/images/block2.gif')
         .add('stage', 'assets/images/stage.png')
+        .add('stats', 'assets/images/stats.png')
 
       loader.load((_loader: Pixi.Loader, resources: ResourceDict): void => {
         GameApp.resources = resources

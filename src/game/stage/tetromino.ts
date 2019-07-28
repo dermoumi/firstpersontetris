@@ -1,5 +1,5 @@
 import * as Pixi from 'pixi.js'
-import { CELL_SIZE, COLORS } from './grid'
+import { CELL_SIZE } from './grid'
 import Block, { BlockType } from './block'
 
 export interface TetrominoType {
@@ -181,8 +181,10 @@ export const TYPES: Record<string, TetrominoType> = {
 }
 
 export default class Tetromino extends Pixi.Container {
-  protected _type: TetrominoType
-  protected _angle = TetrominoAngle.Deg0
+  private _type: TetrominoType
+  private _angle = TetrominoAngle.Deg0
+  private _colors!: [number, number]
+
 
   public constructor(type: TetrominoType | string) {
     super()
@@ -200,12 +202,20 @@ export default class Tetromino extends Pixi.Container {
     return new Tetromino(type)
   }
 
+  public setColors(color1: number, color2: number, update = true): void {
+    this._colors = [color1, color2]
+
+    if (update) {
+      this.update()
+    }
+  }
+
   public update(): void {
     this.removeChildren()
 
     const shape = this.getShape()
     const colorIndex = this._type.color
-    const blockColor = COLORS[colorIndex]
+    const blockColor = this._colors[colorIndex % 2]
     const blockType = (colorIndex == 0) ? BlockType.Block1 : BlockType.Block2
 
     shape.forEach((row: number[], y: number): void => {

@@ -6,15 +6,6 @@ export const CELL_SIZE = BLOCK_SIZE + BLOCK_SPACING
 
 export const WIDTH = 10
 export const HEIGHT = 20
-export const COLORS = [
-  0xFF0000,
-  0x00FF00,
-  0x0000FF,
-  0xFFCC00,
-  0xCCFF00,
-  0xFF00CC,
-  0x00CCFF,
-]
 
 export interface CompleteRow {
   row: number;
@@ -23,11 +14,19 @@ export interface CompleteRow {
 
 export default class StageGrid extends Pixi.Container {
   private _data: number[][]
+  private _colors!: [number, number]
 
   public constructor() {
     super()
 
     this._data = new Array(HEIGHT).fill([]).map((): number[] => new Array(WIDTH).fill(0))
+  }
+
+  public setColors(color1: number, color2: number, update = true): void {
+    this._colors = [color1, color2]
+    if (update) {
+      this.update()
+    }
   }
 
   public update(): void {
@@ -39,7 +38,7 @@ export default class StageGrid extends Pixi.Container {
         if (colorIndex === 0) return
 
         // Make a block graphic
-        const color = COLORS[colorIndex - 1]
+        const color = this._colors[(colorIndex - 1) % 2]
         const type = colorIndex == 1 ? BlockType.Block1 : BlockType.Block2
         const block = new Block(color, type)
         block.position.x = x * CELL_SIZE
