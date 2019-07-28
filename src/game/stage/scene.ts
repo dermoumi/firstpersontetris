@@ -11,6 +11,8 @@ const GRID_SCREEN_Y = 80
 const NEXT_SCREEN_X = 384
 const NEXT_SCREEN_Y = 210
 
+const SCORE_TABLE = [40, 100, 300, 1200]
+
 enum GameMode {
   Normal,
   DarkRoom,
@@ -52,6 +54,22 @@ export default class StageScene extends SceneBase {
   private _hasWallKick = true
   private _hasLockDelay = false
 
+  private _startingLevel = 0
+  private _level = 0
+  private _levelUi!: Pixi.Text
+
+  private _lines = 0
+  private _linesUi!: Pixi.Text
+
+  private _statistics: Record<string, number> = {}
+  private _statisticsUi: Record<string, Pixi.Text> = {}
+
+  private _score = 0
+  private _scoreUi!: Pixi.Text
+
+  private _hiScore = 10000
+  private _hiScoreUi!: Pixi.Text
+
   private _screen = new Pixi.Container()
 
   public constructor(app: GameApp) {
@@ -71,10 +89,39 @@ export default class StageScene extends SceneBase {
     screenUi.zIndex = 100
     this._screen.addChild(screenUi)
 
+    this._levelUi = this._createUiText('00', 416, 314)
+    this._linesUi = this._createUiText('000', 304, 26)
+    this._scoreUi = this._createUiText('000000', 384, 106)
+    this._hiScoreUi = this._createUiText('010000', 384, 58)
+
+    const tetrominoTypes = ['T', 'Z', 'J', 'O', 'L', 'S', 'I']
+    tetrominoTypes.forEach((type, i): void => {
+      this._statistics[type] = 0
+      this._statisticsUi[type] = this._createUiText('000', 96, 170 + i * 32, 0xEB0000)
+    })
+
     this._nextTetromino = this._getNextTetromino()
     this._currentTetromino = this._spawnTetromino()
 
     this.stage.addChild(this._screen)
+
+  }
+
+  private _createUiText(text: string, posX: number, posY: number, fill = 0xFFFFFF): Pixi.Text {
+    const uiText = new Pixi.Text(text, {
+      fontFamily: 'main',
+      fontSize: 82,
+      fill,
+    })
+    uiText.position.x = posX
+    uiText.position.y = posY
+    uiText.scale.x = 0.25
+    uiText.scale.y = 0.25
+    uiText.zIndex = 110
+    uiText.resolution = 2
+    uiText.roundPixels = true
+    this._screen.addChild(uiText)
+    return uiText
   }
 
   public onUpdate(frameTime: number): void {
@@ -134,6 +181,7 @@ export default class StageScene extends SceneBase {
 
     const tetromino = this._nextTetromino
     tetromino.visible = true
+    this._increaseStatistics(tetromino.getName())
 
     this._nextTetromino = this._getNextTetromino()
 
@@ -365,6 +413,7 @@ export default class StageScene extends SceneBase {
 
   private _initRowsAnimation(completeRows: CompleteRow[]): void {
     this._completeRows = completeRows
+    this._increaseLineCount(completeRows.length)
 
     this._completeRowsContainer.removeChildren()
     this._completeRowsBlocks = []
@@ -389,5 +438,43 @@ export default class StageScene extends SceneBase {
 
     this._animationTime = 0
     this._state = StageState.RowAnimation
+  }
+
+  private _setLevel(level: number): void {
+    if (this._level === level) return
+
+    this._level += level
+    this._levelUi.text = `0${level}`.substr(-2)
+  }
+
+  private _increaseStatistics(type: string): void {
+    const count = ++this._statistics[type]
+    this._statisticsUi[type].text = `00${count}`.substr(-3)
+  }
+
+  private _increaseLineCount(count = 1, increaseScore = true, increaseLevel = true): void {
+    this._lines += count
+    this._linesUi.text = `00${this._lines}`.substr(-3)
+
+    if (increaseScore) {
+      this._increaseScore(count)
+    }
+
+    if (increaseLevel) {
+      const level = Math.floor(this._lines / 10) + this._startingLevel
+      this._setLevel(level)
+    }
+  }
+
+  private _increaseScore(lineCount = 1): void {
+    const score = SCORE_TABLE[Math.min(lineCount - 1, 3)]
+
+    this._score += score
+    this._scoreUi.text = `00000${this._score}`.substr(-6)
+
+    if (this._score > this._hiScore) {
+      this._hiScore = this._score
+      this._hiScoreUi.text = this._scoreUi.text
+    }
   }
 }
