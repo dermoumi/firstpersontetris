@@ -73,6 +73,11 @@ export default class GameApp {
         .add('block2', 'assets/images/block2.gif')
         .add('stage', 'assets/images/stage.png')
         .add('stats', 'assets/images/stats.png')
+        .add('arrows', 'assets/images/arrows.png')
+        .add('enter', 'assets/images/enter.png')
+        .add('escape', 'assets/images/escape.png')
+        .add('space', 'assets/images/space.png')
+        .add('checkbox', 'assets/images/checkbox.gif')
 
       loader.load((_loader: Pixi.Loader, resources: ResourceDict): void => {
         GameApp.resources = resources
