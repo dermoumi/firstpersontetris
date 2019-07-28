@@ -29,7 +29,7 @@ export default class StageScene extends SceneBase {
   private _state = StageState.Idle
 
   private _stepTime = 0
-  private _stepDuration = 1
+  private _stepDuration = 0.799
 
   private _animationTime = 0
 
@@ -265,48 +265,70 @@ export default class StageScene extends SceneBase {
     const nextAngle = (this._currentTetromino.getAngle() + 1) % 4
 
     let playerX = this._playerX
-    let collides = this._grid.collidesWith(this._currentTetromino, playerX, this._playerY, nextAngle)
+    let playerY = this._playerY
+    let collides = this._grid.collidesWith(this._currentTetromino, playerX, playerY, nextAngle)
     const halfSize = Math.floor(this._currentTetromino.getSize() / 2)
 
-    // Check if it still collides if moved n blocks to the left or n blocks to the right
-    if (collides && this._hasWallKick) {
-      let shiftedPlayerX
-      for (let i = 1; i <= halfSize; i++) {
-        // Test from the left
-        shiftedPlayerX = this._playerX - i
-        collides = this._grid.collidesWith(this._currentTetromino, shiftedPlayerX, this._playerY, nextAngle)
+    // Helper method to check collision vertically
+    const checkVertically = (shiftedPlayerX = playerX): false | number => {
+      for (let i = 1; i <= halfSize; ++i) {
+        const shiftedPlayerY = this._playerY + i
+        collides = this._grid.collidesWith(this._currentTetromino, shiftedPlayerX, shiftedPlayerY, nextAngle)
         if (!collides) {
-          playerX = shiftedPlayerX
-          break
-        }
-
-        // Test from the right
-        shiftedPlayerX = this._playerX + i
-        collides = this._grid.collidesWith(this._currentTetromino, shiftedPlayerX, this._playerY, nextAngle)
-        if (!collides) {
-          playerX = shiftedPlayerX
-          break
+          return shiftedPlayerY
         }
       }
+
+      return false
     }
 
-    // Allow blocks to rotate even if there's not enough space below them by shifting them a bit upward
-    // if (collides) {
-    //   for (let i = 0; i < halfSize; ++i) {
-    //     const playerY = this._playerY - i
-    //     collides = this._grid.collidesWith(this._currentTetromino, this._playerX, playerY, nextAngle)
-    //     if (!collides) {
-    //       this._playerY = playerY
-    //       break
-    //     }
-    //   }
-    // }
+    if (collides) {
+      // Check if collides from the top, in which case we might lower it up to half size
+      const shiftedPlayerY = checkVertically()
+      if (shiftedPlayerY !== false) {
+        playerY = shiftedPlayerY
+      } else if (this._hasWallKick) {
+        // Check if it still collides if moved n blocks to the left or n blocks to the right
+        let shiftedPlayerX: number
+        let shiftedPlayerY: number | false
+        for (let i = 1; i <= halfSize; ++i) {
+          // Test from the left
+          shiftedPlayerX = this._playerX - i
+          collides = this._grid.collidesWith(this._currentTetromino, shiftedPlayerX, playerY, nextAngle)
+          if (!collides) {
+            playerX = shiftedPlayerX
+            break
+          }
+          shiftedPlayerY = checkVertically(shiftedPlayerX)
+          if (shiftedPlayerY !== false) {
+            playerX = shiftedPlayerX
+            playerY = shiftedPlayerY
+            break
+          }
+
+          // Test from the right
+          shiftedPlayerX = this._playerX + i
+          collides = this._grid.collidesWith(this._currentTetromino, shiftedPlayerX, playerY, nextAngle)
+          if (!collides) {
+            playerX = shiftedPlayerX
+            break
+          }
+          shiftedPlayerY = checkVertically(shiftedPlayerX)
+          if (shiftedPlayerY !== false) {
+            playerX = shiftedPlayerX
+            playerY = shiftedPlayerY
+            break
+          }
+        }
+
+      }
+    }
 
     if (collides) {
       // TODO: Play collision sound
       console.debug('THUD!')
     } else {
-      this._initRotation(nextAngle, playerX)
+      this._initRotation(nextAngle, playerX, playerY)
     }
   }
 
