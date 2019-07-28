@@ -16,6 +16,11 @@ export const COLORS = [
   0x00CCFF,
 ]
 
+export interface CompleteRow {
+  row: number;
+  blocks: number[];
+}
+
 export default class StageGrid extends Pixi.Container {
   private _data: number[][]
 
@@ -64,19 +69,42 @@ export default class StageGrid extends Pixi.Container {
     })
   }
 
-  public unite(tetromino: Tetromino, gridX: number, gridY: number): void {
+  public unite(tetromino: Tetromino, gridX: number, gridY: number): CompleteRow[] {
     const shape = tetromino.getShape()
     const color = tetromino.getColorIndex()
+    const completeRows: CompleteRow[] = []
 
     shape.forEach((row: number[], blockY: number): void => {
+      const y = gridY + blockY
+      let rowDirty = false
+
       row.forEach((block: number, blockX: number): void => {
         if (block === 0) return
 
+        rowDirty = true
         const x = gridX + blockX
-        const y = gridY + blockY
-
         this._data[y][x] = color + 1
       })
+
+      // Check if this row was completed
+      if (rowDirty && !this._data[y].some((block): boolean => block === 0)) {
+        completeRows.push({
+          row: y,
+          blocks: this._data[y],
+        })
+
+        this._data[y] = new Array(WIDTH).fill(0)
+      }
     })
+
+    return completeRows
+  }
+
+  public removeRow(row: number): void {
+    for (let i = row - 1; i >= 0; --i) {
+      this._data[i + 1] = this._data[i]
+    }
+
+    this._data[0] = new Array(WIDTH).fill(0)
   }
 }

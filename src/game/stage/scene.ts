@@ -1,9 +1,10 @@
 import SceneBase from 'game/scene/base'
 import GameApp from 'game/app'
 import Tetromino, { TetrominoAngle } from './tetromino'
-import StageGrid, { WIDTH as GRID_WIDTH, CELL_SIZE } from './grid'
+import StageGrid, { WIDTH as GRID_WIDTH, CELL_SIZE, CompleteRow, COLORS } from './grid'
 import Input from 'game/input'
 import * as Pixi from 'pixi.js'
+import Block, { BlockType, BLOCK_SIZE } from './block'
 
 const GRID_SCREEN_X = 192
 const GRID_SCREEN_Y = 80
@@ -20,22 +21,28 @@ enum StageState {
   Paused,
   Idle,
   RotationAnimation,
-  LineFlash,
-  LineAnimation,
+  RowAnimation,
 }
 
 export default class StageScene extends SceneBase {
-  private _grid = new StageGrid
+  private _grid = new StageGrid()
   private _state = StageState.Idle
+
   private _stepTime = 0
   private _stepDuration = 1
+
   private _animationTime = 0
 
   private _animateRotation = true
-  private _rotationDuration = 0.2
+  private _rotationDuration = 0.1
+
+  private _completeRows: CompleteRow[] = []
+  private _completeRowsBlocks: Block[][] = []
+  private _completeRowsContainer = new Pixi.Container()
+  private _rowAnimationDuration = 0.5
 
   private _firstPersonMode = true
-  private _gameMode = GameMode.Normal // TODO: Switch this to Normal, eventually
+  private _gameMode = GameMode.Normal
 
   private _currentTetromino: Tetromino
   private _nextTetromino: Tetromino
@@ -55,6 +62,10 @@ export default class StageScene extends SceneBase {
     this._grid.position.x = GRID_SCREEN_X
     this._grid.position.y = GRID_SCREEN_Y
     this._screen.addChild(this._grid)
+
+    this._completeRowsContainer.position.x = GRID_SCREEN_X
+    this._completeRowsContainer.position.y = GRID_SCREEN_Y
+    this._screen.addChild(this._completeRowsContainer)
 
     const screenUi = Pixi.Sprite.from(GameApp.resources.stage.texture)
     screenUi.zIndex = 100
@@ -79,8 +90,8 @@ export default class StageScene extends SceneBase {
       this._updateRotation(frameTime)
     }
 
-    if (this._state === StageState.LineAnimation) {
-      this._updateLineAnimation(frameTime)
+    if (this._state === StageState.RowAnimation) {
+      this._updateRowAnimation(frameTime)
     }
   }
 
@@ -162,8 +173,60 @@ export default class StageScene extends SceneBase {
     this._currentTetromino.angle = -90 + 90 * percent
   }
 
-  private _updateLineAnimation(frameTime: number): void {
+  private _updateRowAnimation(frameTime: number): void {
+    if (this._animationTime === this._rowAnimationDuration) {
+      // Shift rows in the grid
+      this._completeRows.forEach(({ row }): void => {
+        this._grid.removeRow(row)
+      })
+      this._grid.update()
+
+      // Empty the complete rows container to avoid unecessary invisible renders
+      this._completeRowsContainer.removeChildren()
+
+      // Shift back to the idle state and leave method
+      this._state = StageState.Idle
+      return
+    }
+
     this._animationTime += frameTime
+    if (this._animationTime > this._rowAnimationDuration) {
+      this._animationTime = this._rowAnimationDuration
+    }
+
+    const steps = Math.ceil(GRID_WIDTH / 2)
+    const blendTime = (this._rowAnimationDuration / steps) / 2
+    const interval = (this._rowAnimationDuration - blendTime) / steps
+    const stepDuration = interval + blendTime
+
+    const oddWidth = (GRID_WIDTH % 2 === 1)
+    const halfWidth = Math.floor(GRID_WIDTH / 2)
+
+    if (oddWidth) {
+      // Do the middle block first
+      const percent = 1 - Math.max(Math.min(this._animationTime / stepDuration, 1), 0)
+      this._completeRowsBlocks.forEach((row): void => {
+        const block = row[halfWidth]
+        block.scale.x = percent
+        block.scale.y = percent
+      })
+    }
+
+    for (let i = oddWidth ? 1 : 0; i < halfWidth; ++i) {
+      const percent = 1 - Math.max(Math.min((this._animationTime - i * interval)/ stepDuration, 1), 0)
+
+      this._completeRowsBlocks.forEach((row): void => {
+        // Do block on the left
+        const leftBlock = row[halfWidth - i - 1]
+        leftBlock.scale.x = percent
+        leftBlock.scale.y = percent
+
+        // Do block on the right
+        const rightBlock = row[halfWidth + i]
+        rightBlock.scale.x = percent
+        rightBlock.scale.y = percent
+      })
+    }
   }
 
   private _moveLeft(): void {
@@ -248,8 +311,13 @@ export default class StageScene extends SceneBase {
   }
 
   private _uniteTetromino(): void {
-    this._grid.unite(this._currentTetromino, this._playerX, this._playerY)
+    const completeRows = this._grid.unite(this._currentTetromino, this._playerX, this._playerY)
     this._grid.update()
+
+    if (completeRows.length > 0) {
+      this._initRowsAnimation(completeRows)
+    }
+
     this._currentTetromino = this._spawnTetromino()
   }
 
@@ -271,5 +339,33 @@ export default class StageScene extends SceneBase {
       this._currentTetromino.angle = -90
       this._state = StageState.RotationAnimation
     }
+  }
+
+  private _initRowsAnimation(completeRows: CompleteRow[]): void {
+    this._completeRows = completeRows
+
+    this._completeRowsContainer.removeChildren()
+    this._completeRowsBlocks = []
+    completeRows.forEach(({ row, blocks }): void => {
+      const blockArray = blocks.map((colorIndex, index): Block => {
+        const color = COLORS[colorIndex - 1]
+        const type = colorIndex === 1 ? BlockType.Block1 : BlockType.Block2
+
+        const block = new Block(color, type)
+        this._completeRowsContainer.addChild(block)
+
+        block.pivot.x = Math.floor(BLOCK_SIZE / 2)
+        block.pivot.y = Math.floor(BLOCK_SIZE / 2)
+        block.position.x = index * CELL_SIZE + block.pivot.x
+        block.position.y = row * CELL_SIZE + block.pivot.y
+
+        return block
+      })
+
+      this._completeRowsBlocks.push(blockArray)
+    })
+
+    this._animationTime = 0
+    this._state = StageState.RowAnimation
   }
 }
