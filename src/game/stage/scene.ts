@@ -232,6 +232,9 @@ export default class StageScene extends SceneBase {
       // Empty the complete rows container to avoid unecessary invisible renders
       this._completeRowsContainer.removeChildren()
 
+      // Spawn new tetromino now that the animation has ended
+      this._currentTetromino = this._spawnTetromino()
+
       // Shift back to the idle state and leave method
       this._state = StageState.Idle
       return
@@ -383,12 +386,13 @@ export default class StageScene extends SceneBase {
   private _uniteTetromino(): void {
     const completeRows = this._grid.unite(this._currentTetromino, this._playerX, this._playerY)
     this._grid.update()
+    this._currentTetromino.visible = false
 
     if (completeRows.length > 0) {
       this._initRowsAnimation(completeRows)
+    } else {
+      this._currentTetromino = this._spawnTetromino()
     }
-
-    this._currentTetromino = this._spawnTetromino()
   }
 
   private _initRotation(angle: TetrominoAngle, playerX = this._playerX, playerY = this._playerY): void {
