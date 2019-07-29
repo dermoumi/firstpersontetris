@@ -1,4 +1,5 @@
 export const SCORE_TABLE: number[] = [40, 100, 300, 1200]
+
 export const COLOR_TABLE: [number, number][] = [
   [0x0058F8, 0x3CBCFC],
   [0x00A800, 0xB8F818],

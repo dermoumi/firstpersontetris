@@ -5,7 +5,7 @@ import StageGrid, { WIDTH as GRID_WIDTH, CELL_SIZE, CompleteRow } from './grid'
 import Input from 'game/input'
 import * as Pixi from 'pixi.js'
 import Block, { BlockType, BLOCK_SIZE } from './block'
-import * as Constants from './constants'
+import { COLOR_TABLE, SCORE_TABLE } from './constants'
 
 const GRID_SCREEN_X = 192
 const GRID_SCREEN_Y = 80
@@ -14,12 +14,9 @@ const NEXT_SCREEN_Y = 210
 
 export interface StageSceneUserdata {
   level?: number;
-}
-
-enum GameMode {
-  Normal,
-  DarkRoom,
-  ExistentialCrisis,
+  firstPerson?: boolean;
+  lightsOut?: boolean;
+  crisisMode?: boolean;
 }
 
 enum StageState {
@@ -47,7 +44,8 @@ export default class StageScene extends SceneBase {
   private _rowAnimationDuration = 0.5
 
   private _firstPersonMode = true
-  private _gameMode = GameMode.Normal
+  private _lightsOutMode = false
+  private _inCrisisMode = false
 
   private _currentTetromino: Tetromino
   private _nextTetromino: Tetromino
@@ -79,8 +77,20 @@ export default class StageScene extends SceneBase {
   public constructor(app: GameApp, userdata: StageSceneUserdata = {}) {
     super(app)
 
-    if (userdata.level) {
+    if (userdata.level !== undefined) {
       this._level = this._startingLevel = userdata.level
+    }
+
+    if (userdata.firstPerson !== undefined) {
+      this._firstPersonMode = userdata.firstPerson
+    }
+
+    if (userdata.lightsOut !== undefined) {
+      this._lightsOutMode = userdata.lightsOut
+    }
+
+    if (userdata.crisisMode !== undefined) {
+      this._inCrisisMode = userdata.crisisMode
     }
 
     this._screen.sortableChildren = true
@@ -95,6 +105,7 @@ export default class StageScene extends SceneBase {
 
     const screenUi = Pixi.Sprite.from(GameApp.resources.stage.texture)
     screenUi.zIndex = 100
+    screenUi.visible = !this._lightsOutMode
     this._screen.addChild(screenUi)
 
     this._levelUi = this._createUiText(`0${this._level}`.substr(-2), 416, 314)
@@ -111,6 +122,7 @@ export default class StageScene extends SceneBase {
     this._statsPiecesUi.position.x = 48
     this._statsPiecesUi.position.y = 160
     this._statsPiecesUi.zIndex = 110
+    this._statsPiecesUi.visible = !this._lightsOutMode
     this._screen.addChild(this._statsPiecesUi)
 
     this._nextTetromino = this._getNextTetromino()
@@ -122,8 +134,7 @@ export default class StageScene extends SceneBase {
   }
 
   private _getColors(): [number, number] {
-    const COLORS = Constants.COLOR_TABLE
-    return COLORS[this._level % COLORS.length]
+    return COLOR_TABLE[this._level % COLOR_TABLE.length]
   }
 
   private _updateColors(): void {
@@ -168,6 +179,7 @@ export default class StageScene extends SceneBase {
     uiText.zIndex = 110
     uiText.resolution = 2
     uiText.roundPixels = true
+    uiText.visible = !this._lightsOutMode
     this._screen.addChild(uiText)
     return uiText
   }
@@ -212,7 +224,7 @@ export default class StageScene extends SceneBase {
     const [color1, color2] = this._getColors()
     tetromino.setColors(color1, color2)
 
-    if (this._gameMode === GameMode.DarkRoom) {
+    if (this._lightsOutMode) {
       tetromino.visible = false
     } else {
       const [centerX, centerY] = tetromino.getCenter()
@@ -495,7 +507,7 @@ export default class StageScene extends SceneBase {
   }
 
   private _increaseScore(lineCount = 1): void {
-    const score = Constants.SCORE_TABLE[Math.min(lineCount - 1, 3)] * (this._level + 1)
+    const score = SCORE_TABLE[Math.min(lineCount - 1, 3)] * (this._level + 1)
 
     this._score += score
     this._scoreUi.text = `00000${this._score}`.substr(-6)

@@ -184,7 +184,10 @@ export default class TitleScene extends SceneBase {
   }
 
   private _startGame(): void {
-    this.manager.switchTo(new SceneStage(this.app))
+    this.manager.switchTo(new SceneStage(this.app, {
+      lightsOut: this._lightsOut,
+      crisisMode: this._inCrisis,
+    }))
   }
 
   private _setupCreditsText(): void {
