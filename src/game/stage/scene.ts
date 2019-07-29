@@ -370,58 +370,25 @@ export default class StageScene extends SceneBase {
     let collides = this._grid.collidesWith(this._currentTetromino, playerX, playerY, nextAngle)
     const halfSize = Math.floor(this._currentTetromino.getSize() / 2)
 
-    // Helper method to check collision vertically
-    const checkVertically = (shiftedPlayerX = playerX): false | number => {
+    // Check if it still collides if moved n blocks to the left or n blocks to the right
+    if (collides && this._hasWallKick) {
+      let shiftedPlayerX: number
       for (let i = 1; i <= halfSize; ++i) {
-        const shiftedPlayerY = this._playerY + i
-        collides = this._grid.collidesWith(this._currentTetromino, shiftedPlayerX, shiftedPlayerY, nextAngle)
+        // Test from the left
+        shiftedPlayerX = this._playerX - i
+        collides = this._grid.collidesWith(this._currentTetromino, shiftedPlayerX, playerY, nextAngle)
         if (!collides) {
-          return shiftedPlayerY
-        }
-      }
-
-      return false
-    }
-
-    if (collides) {
-      // Check if collides from the top, in which case we might lower it up to half size
-      const shiftedPlayerY = checkVertically()
-      if (shiftedPlayerY !== false) {
-        playerY = shiftedPlayerY
-      } else if (this._hasWallKick) {
-        // Check if it still collides if moved n blocks to the left or n blocks to the right
-        let shiftedPlayerX: number
-        let shiftedPlayerY: number | false
-        for (let i = 1; i <= halfSize; ++i) {
-          // Test from the left
-          shiftedPlayerX = this._playerX - i
-          collides = this._grid.collidesWith(this._currentTetromino, shiftedPlayerX, playerY, nextAngle)
-          if (!collides) {
-            playerX = shiftedPlayerX
-            break
-          }
-          shiftedPlayerY = checkVertically(shiftedPlayerX)
-          if (shiftedPlayerY !== false) {
-            playerX = shiftedPlayerX
-            playerY = shiftedPlayerY
-            break
-          }
-
-          // Test from the right
-          shiftedPlayerX = this._playerX + i
-          collides = this._grid.collidesWith(this._currentTetromino, shiftedPlayerX, playerY, nextAngle)
-          if (!collides) {
-            playerX = shiftedPlayerX
-            break
-          }
-          shiftedPlayerY = checkVertically(shiftedPlayerX)
-          if (shiftedPlayerY !== false) {
-            playerX = shiftedPlayerX
-            playerY = shiftedPlayerY
-            break
-          }
+          playerX = shiftedPlayerX
+          break
         }
 
+        // Test from the right
+        shiftedPlayerX = this._playerX + i
+        collides = this._grid.collidesWith(this._currentTetromino, shiftedPlayerX, playerY, nextAngle)
+        if (!collides) {
+          playerX = shiftedPlayerX
+          break
+        }
       }
     }
 
