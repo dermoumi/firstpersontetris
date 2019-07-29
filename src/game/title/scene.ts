@@ -13,6 +13,17 @@ const MUSIC_TRACKS: [string, string][] = [
   ['assets/music/type3.mp3', 'assets/music/type3fast.mp3'],
 ]
 
+export interface GameOverData {
+  level: number;
+  lines: number;
+  score: number;
+  hiScore: number;
+}
+
+export interface TitleUserdata {
+  gameOver?: GameOverData;
+}
+
 export default class TitleScene extends SceneBase {
   private _container = new Pixi.Container()
   private _musicCheckboxes: CheckBox[] = []
@@ -21,7 +32,7 @@ export default class TitleScene extends SceneBase {
   private _lightsOut = false
   private _inCrisis = false
 
-  public constructor(app: GameApp) {
+  public constructor(app: GameApp, userdata: TitleUserdata = {}) {
     super(app)
 
     this._loadSettings()
@@ -29,57 +40,17 @@ export default class TitleScene extends SceneBase {
 
     this.stage.addChild(this._container)
 
-    const labelStyle = {
-      fontFamily: 'main',
-      fontSize: 18,
-      fill: 0x7C7C7C,
-    }
-
     const titleStyle = {
       fontFamily: 'main',
       fontSize: 24,
       fill: 0xFFFFFF,
     }
 
-    const arrows = Pixi.Sprite.from(GameApp.resources.arrows.texture)
-    arrows.position.x = 24
-    arrows.position.y = 24
-    this._container.addChild(arrows)
-
-    const arrowsLabel = new Pixi.Text('MOVE', labelStyle)
-    arrowsLabel.position.x = arrows.position.x + (arrows.width - arrowsLabel.width) / 2
-    arrowsLabel.position.y = 96
-    this._container.addChild(arrowsLabel)
-
-    const space = Pixi.Sprite.from(GameApp.resources.space.texture)
-    space.position.x = 181
-    space.position.y = 60
-    this._container.addChild(space)
-
-    const spaceLabel = new Pixi.Text('ROTATE', labelStyle)
-    spaceLabel.position.x = space.position.x + (space.width - spaceLabel.width) / 2
-    spaceLabel.position.y = 96
-    this._container.addChild(spaceLabel)
-
-    const enter = Pixi.Sprite.from(GameApp.resources.enter.texture)
-    enter.position.x = 386
-    enter.position.y = 54
-    this._container.addChild(enter)
-
-    const enterLabel = new Pixi.Text('DROP', labelStyle)
-    enterLabel.position.x = enter.position.x + (enter.width - enterLabel.width) / 2
-    enterLabel.position.y = 96
-    this._container.addChild(enterLabel)
-
-    const escape = Pixi.Sprite.from(GameApp.resources.escape.texture)
-    escape.position.x = 547
-    escape.position.y = 54
-    this._container.addChild(escape)
-
-    const escapeLabel = new Pixi.Text('PAUSE', labelStyle)
-    escapeLabel.position.x = escape.position.x + (escape.width - escapeLabel.width) / 2
-    escapeLabel.position.y = 96
-    this._container.addChild(escapeLabel)
+    if (userdata.gameOver !== undefined) {
+      this._drawGameOver(userdata.gameOver)
+    } else {
+      this._drawControls()
+    }
 
     const musicTitle = new Pixi.Text('MUSIC', titleStyle)
     musicTitle.position.x = 24
@@ -169,6 +140,108 @@ export default class TitleScene extends SceneBase {
 
   private _saveSettings(): void {
     // TODO: Save settings to local storage
+  }
+
+  private _drawControls(): void {
+    const labelStyle = {
+      fontFamily: 'main',
+      fontSize: 18,
+      fill: 0x7C7C7C,
+    }
+
+    const arrows = Pixi.Sprite.from(GameApp.resources.arrows.texture)
+    arrows.position.x = 24
+    arrows.position.y = 24
+    this._container.addChild(arrows)
+
+    const arrowsLabel = new Pixi.Text('MOVE', labelStyle)
+    arrowsLabel.position.x = arrows.position.x + (arrows.width - arrowsLabel.width) / 2
+    arrowsLabel.position.y = 96
+    this._container.addChild(arrowsLabel)
+
+    const space = Pixi.Sprite.from(GameApp.resources.space.texture)
+    space.position.x = 181
+    space.position.y = 60
+    this._container.addChild(space)
+
+    const spaceLabel = new Pixi.Text('ROTATE', labelStyle)
+    spaceLabel.position.x = space.position.x + (space.width - spaceLabel.width) / 2
+    spaceLabel.position.y = 96
+    this._container.addChild(spaceLabel)
+
+    const enter = Pixi.Sprite.from(GameApp.resources.enter.texture)
+    enter.position.x = 386
+    enter.position.y = 54
+    this._container.addChild(enter)
+
+    const enterLabel = new Pixi.Text('DROP', labelStyle)
+    enterLabel.position.x = enter.position.x + (enter.width - enterLabel.width) / 2
+    enterLabel.position.y = 96
+    this._container.addChild(enterLabel)
+
+    const escape = Pixi.Sprite.from(GameApp.resources.escape.texture)
+    escape.position.x = 547
+    escape.position.y = 54
+    this._container.addChild(escape)
+
+    const escapeLabel = new Pixi.Text('PAUSE', labelStyle)
+    escapeLabel.position.x = escape.position.x + (escape.width - escapeLabel.width) / 2
+    escapeLabel.position.y = 96
+    this._container.addChild(escapeLabel)
+  }
+
+  private _drawGameOver(data: GameOverData): void {
+    const labelStyle = {
+      fontFamily: 'main',
+      fontSize: 18,
+      fill: 0x7C7C7C,
+    }
+
+    const valueStyle = {
+      fontFamily: 'main',
+      fontSize: 18,
+      fill: 0xFFFFFF,
+    }
+
+    const levelLabel = new Pixi.Text('LEVEL', labelStyle)
+    levelLabel.position.x = 310 - levelLabel.width
+    levelLabel.position.y = 24
+    this._container.addChild(levelLabel)
+
+    const linesLabel = new Pixi.Text('LINES', labelStyle)
+    linesLabel.position.x = 310 - linesLabel.width
+    linesLabel.position.y = 44
+    this._container.addChild(linesLabel)
+
+    const scoreLabel = new Pixi.Text('SCORE', labelStyle)
+    scoreLabel.position.x = 310 - scoreLabel.width
+    scoreLabel.position.y = 64
+    this._container.addChild(scoreLabel)
+
+    const hiScoreLabel = new Pixi.Text('TOP SCORE', labelStyle)
+    hiScoreLabel.position.x = 310 - hiScoreLabel.width
+    hiScoreLabel.position.y = 84
+    this._container.addChild(hiScoreLabel)
+
+    const level = new Pixi.Text(data.level.toString(), valueStyle)
+    level.position.x = 330
+    level.position.y = 24
+    this._container.addChild(level)
+
+    const lines = new Pixi.Text(data.lines.toString(), valueStyle)
+    lines.position.x = 330
+    lines.position.y = 44
+    this._container.addChild(lines)
+
+    const score = new Pixi.Text(data.score.toString(), valueStyle)
+    score.position.x = 330
+    score.position.y = 64
+    this._container.addChild(score)
+
+    const hiScore = new Pixi.Text(data.hiScore.toString(), valueStyle)
+    hiScore.position.x = 330
+    hiScore.position.y = 84
+    this._container.addChild(hiScore)
   }
 
   private _selectMusic(index: number): void {

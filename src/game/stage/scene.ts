@@ -6,6 +6,7 @@ import Input from 'game/input'
 import * as Pixi from 'pixi.js'
 import Block, { BlockType, BLOCK_SIZE } from './block'
 import { COLOR_TABLE, SCORE_TABLE } from './constants'
+import TitleScene from 'game/title/scene'
 
 const GRID_SCREEN_X = 192
 const GRID_SCREEN_Y = 80
@@ -626,7 +627,14 @@ export default class StageScene extends SceneBase {
 
   private _updateGameOver(frameTime: number): void {
     if (this._animationTime === this._gameOverAnimationDuration) {
-      // TODO: Go back to title screen with game over info
+      this.manager.switchTo(new TitleScene(this.app, {
+        gameOver: {
+          level: this._level,
+          lines: this._lines,
+          score: this._score,
+          hiScore: this._hiScore,
+        },
+      }))
     }
 
     this._animationTime = Math.min(this._animationTime + frameTime, this._gameOverAnimationDuration)
