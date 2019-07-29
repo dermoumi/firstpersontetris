@@ -273,6 +273,9 @@ export default class StageScene extends SceneBase {
 
   private _updateRowAnimation(frameTime: number): void {
     if (this._animationTime === this._rowAnimationDuration) {
+      // Update level
+      this._updateLevel()
+
       // Shift rows in the grid
       this._completeRows.forEach(({ row }): void => {
         this._grid.removeRow(row)
@@ -434,7 +437,7 @@ export default class StageScene extends SceneBase {
 
   private _initRowsAnimation(completeRows: CompleteRow[]): void {
     this._completeRows = completeRows
-    this._increaseLineCount(completeRows.length)
+    this._increaseLineCount(completeRows.length, true, false)
 
     this._completeRowsContainer.removeChildren()
     this._completeRowsBlocks = []
@@ -487,8 +490,7 @@ export default class StageScene extends SceneBase {
     }
 
     if (increaseLevel) {
-      const level = Math.floor(this._lines / 10) + this._startingLevel
-      this._setLevel(level)
+      this._updateLevel()
     }
   }
 
@@ -502,5 +504,10 @@ export default class StageScene extends SceneBase {
       this._hiScore = this._score
       this._hiScoreUi.text = this._scoreUi.text
     }
+  }
+
+  private _updateLevel(): void {
+    const level = Math.floor(this._lines / 10) + this._startingLevel
+    this._setLevel(level)
   }
 }
