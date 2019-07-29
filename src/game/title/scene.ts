@@ -7,6 +7,11 @@ import CheckBox from './checkbox'
 
 const CONTAINER_WIDTH = 640
 const CONTAINER_HEIGHT = 480
+const MUSIC_TRACKS: [string, string][] = [
+  ['assets/music/type1.mp3', 'assets/music/type1fast.mp3'],
+  ['assets/music/type2.mp3', 'assets/music/type2fast.mp3'],
+  ['assets/music/type3.mp3', 'assets/music/type3fast.mp3'],
+]
 
 export default class TitleScene extends SceneBase {
   private _container = new Pixi.Container()
@@ -167,6 +172,7 @@ export default class TitleScene extends SceneBase {
   private _selectMusic(index: number): void {
     this._selectedMusic = index
     this._saveSettings()
+    this._playMusic(this._selectedMusic)
 
     this._musicCheckboxes.forEach((checkBox, i): void => {
       const selected = (i === index)
@@ -179,8 +185,17 @@ export default class TitleScene extends SceneBase {
   }
 
   private _playMusic(index: number = this._selectedMusic): void {
-    // TODO: Stop playing current music, if any
-    // TODO: Start playing slow-version track and start loading fast-version track
+    const sound = this.app.sound
+    sound.stopMusic()
+
+    if (index >= 3) return
+
+    const [ music, musicFast ] = MUSIC_TRACKS[index]
+    sound.setMusic(music, musicFast, {
+      preload: true,
+      loop: true,
+    })
+    sound.playSlowMusic()
   }
 
   private _startGame(): void {

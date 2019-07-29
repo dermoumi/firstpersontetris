@@ -38,19 +38,14 @@ import(/* webpackChunkName: "game" */ '../game/app').then(async (module): Promis
         const fontFace = new FontFace(font.family, font.source)
         return fontFace.load()
       }))
-
-      await app.preload()
-      app.run()
-      hideSplash()
     } catch (error) {
       console.error(`Font did not load: ${error}`)
     }
-  } else {
-    // FontFace API is not available, run the game hoping the fonts are loaded
-    await app.preload()
-    app.run()
-    hideSplash()
   }
+
+  await app.preload()
+  app.run()
+  hideSplash()
 })
 
 // TODO: Implement service workers

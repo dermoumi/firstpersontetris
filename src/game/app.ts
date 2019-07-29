@@ -2,6 +2,7 @@ import * as Pixi from 'pixi.js'
 import SceneManager from 'game/scene/manager'
 import TitleScene from 'game/title/scene'
 import Input from 'game/input'
+import Sound from 'game/sound'
 
 export interface SizeObject {
   width: number;
@@ -17,6 +18,7 @@ export default class GameApp {
   public stage = new Pixi.Container()
   public sceneManager = new SceneManager(this)
   public input = new Input()
+  public sound = new Sound()
 
   public static resources: ResourceDict = {}
 

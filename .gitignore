@@ -4,3 +4,5 @@ dist/*
 !dist/assets
 !dist/index.html
 !dist/manifest.json
+
+yarn-error.log
