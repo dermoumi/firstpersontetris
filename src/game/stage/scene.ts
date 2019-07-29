@@ -346,20 +346,14 @@ export default class StageScene extends SceneBase {
   }
 
   private _moveLeft(): void {
-    if (this._grid.collidesWith(this._currentTetromino, this._playerX - 1, this._playerY)) {
-      // TODO: Play collision sound
-      console.debug('THUD!')
-    } else {
+    if (!this._grid.collidesWith(this._currentTetromino, this._playerX - 1, this._playerY)) {
       this._playerX--
       this._currentTetromino.setX(GRID_SCREEN_X + this._playerX * CELL_SIZE)
     }
   }
 
   private _moveRight(): void {
-    if (this._grid.collidesWith(this._currentTetromino, this._playerX + 1, this._playerY)) {
-      // TODO: Play collision sound
-      console.debug('THUD!')
-    } else {
+    if (!this._grid.collidesWith(this._currentTetromino, this._playerX + 1, this._playerY)) {
       this._playerX++
       this._currentTetromino.setX(GRID_SCREEN_X + this._playerX * CELL_SIZE)
     }
@@ -407,10 +401,7 @@ export default class StageScene extends SceneBase {
       }
     }
 
-    if (collides) {
-      // TODO: Play collision sound
-      console.debug('THUD!')
-    } else {
+    if (!collides) {
       this._initRotation(nextAngle, playerX, playerY)
     }
   }
@@ -423,11 +414,14 @@ export default class StageScene extends SceneBase {
     if (completeRows.length > 0) {
       this._initRowsAnimation(completeRows)
     } else {
+      this.app.sound.playSfx('united')
       this._currentTetromino = this._spawnTetromino()
     }
   }
 
   private _initRotation(angle: TetrominoAngle, playerX = this._playerX, playerY = this._playerY): void {
+    this.app.sound.playSfx('rotate')
+
     this._playerX = playerX
     this._playerY = playerY
     this._currentTetromino.setAngle(angle)
@@ -450,6 +444,13 @@ export default class StageScene extends SceneBase {
   private _initRowsAnimation(completeRows: CompleteRow[]): void {
     this._completeRows = completeRows
     this._increaseLineCount(completeRows.length, true, false)
+
+    // Play row completed sound
+    if (completeRows.length < 4) {
+      this.app.sound.playSfx('line')
+    } else {
+      this.app.sound.playSfx('tetris')
+    }
 
     this._completeRowsContainer.removeChildren()
     this._completeRowsBlocks = []
@@ -486,6 +487,7 @@ export default class StageScene extends SceneBase {
     this._levelUi.text = `0${level}`.substr(-2)
 
     this._updateColors()
+    this.app.sound.playSfx('level')
   }
 
   private _increaseStatistics(type: string): void {

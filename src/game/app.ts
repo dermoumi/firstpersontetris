@@ -80,6 +80,13 @@ export default class GameApp {
         .add('escape', 'assets/images/escape.png')
         .add('space', 'assets/images/space.png')
         .add('checkbox', 'assets/images/checkbox.gif')
+        .add('sfx_level', 'assets/sounds/level.mp3')
+        .add('sfx_line', 'assets/sounds/line.mp3')
+        .add('sfx_over', 'assets/sounds/over.mp3')
+        .add('sfx_rotate', 'assets/sounds/rotate.mp3')
+        .add('sfx_tetris', 'assets/sounds/tetris.mp3')
+        .add('sfx_united', 'assets/sounds/united.mp3')
+        .add('sfx_beep', 'assets/sounds/beep.mp3')
 
       loader.load((_loader: Pixi.Loader, resources: ResourceDict): void => {
         GameApp.resources = resources

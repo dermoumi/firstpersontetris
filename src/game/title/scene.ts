@@ -25,6 +25,7 @@ export default class TitleScene extends SceneBase {
     super(app)
 
     this._loadSettings()
+    this.app.sound.setSfxEnabled(this._sfxOn)
 
     this.stage.addChild(this._container)
 
@@ -107,9 +108,10 @@ export default class TitleScene extends SceneBase {
     sfxCheckbox.position.y = 280
     this._container.addChild(sfxCheckbox)
     sfxCheckbox.on('pointertap', (): void => {
-      // TODO: Play click sound
       this._sfxOn = !this._sfxOn
       sfxCheckbox.setChecked(this._sfxOn)
+      this.app.sound.setSfxEnabled(this._sfxOn)
+      this.app.sound.playSfx('beep')
     })
 
     const lightsOutCheckbox = new CheckBox('LIGHTS OUT', this._lightsOut)
@@ -117,9 +119,9 @@ export default class TitleScene extends SceneBase {
     lightsOutCheckbox.position.y = 280
     this._container.addChild(lightsOutCheckbox)
     lightsOutCheckbox.on('pointertap', (): void => {
-      // TODO: Play click sound
       this._lightsOut = !this._lightsOut
       lightsOutCheckbox.setChecked(this._lightsOut)
+      this.app.sound.playSfx('beep')
     })
 
     const crisisCheckbox = new CheckBox('IN CRISIS', this._inCrisis)
@@ -127,9 +129,9 @@ export default class TitleScene extends SceneBase {
     crisisCheckbox.position.y = 280
     this._container.addChild(crisisCheckbox)
     crisisCheckbox.on('pointertap', (): void => {
-      // TODO: Play click sound
       this._inCrisis = !this._inCrisis
       crisisCheckbox.setChecked(this._inCrisis)
+      this.app.sound.playSfx('beep')
     })
 
     const pushStartText = new Pixi.Text('PUSH START', {
@@ -181,7 +183,7 @@ export default class TitleScene extends SceneBase {
       checkBox.buttonMode = !selected
     })
 
-    // TODO: Play click sound
+    this.app.sound.playSfx('beep')
   }
 
   private _playMusic(index: number = this._selectedMusic): void {
@@ -194,6 +196,7 @@ export default class TitleScene extends SceneBase {
     sound.setMusic(music, musicFast, {
       preload: true,
       loop: true,
+      volume: 0.5,
     })
     sound.playSlowMusic()
   }
@@ -203,6 +206,7 @@ export default class TitleScene extends SceneBase {
       lightsOut: this._lightsOut,
       crisisMode: this._inCrisis,
     }))
+    this.app.sound.playSfx('beep')
   }
 
   private _setupCreditsText(): void {
