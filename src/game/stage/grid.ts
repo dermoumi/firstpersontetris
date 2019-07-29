@@ -76,8 +76,11 @@ export default class StageGrid extends Pixi.Container {
 
     shape.forEach((row: number[], blockY: number): void => {
       const y = gridY + blockY
+      if (y < 0) return
+
       let rowDirty = false
 
+      // Set values of the tetromino on the grid
       row.forEach((block: number, blockX: number): void => {
         if (block === 0) return
 

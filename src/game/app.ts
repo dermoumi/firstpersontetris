@@ -13,8 +13,8 @@ export type ResourceDict = Record<string, Pixi.LoaderResource>
 
 export default class GameApp {
   private container: HTMLElement
-  private pixi: Pixi.Application
   private lastTimestamp = 0
+  public pixi: Pixi.Application
   public stage = new Pixi.Container()
   public sceneManager = new SceneManager(this)
   public input = new Input()

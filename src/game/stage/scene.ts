@@ -25,6 +25,7 @@ enum StageState {
   RotationAnimation,
   RowAnimation,
   DropAnimation,
+  GameOver,
 }
 
 export default class StageScene extends SceneBase {
@@ -48,6 +49,10 @@ export default class StageScene extends SceneBase {
   private _dropAnimationDuration = 0.2
   private _dropTargetY = 0
   private _dropStartPos = 0
+
+  private _gameOverAnimationDuration = 2.4
+  private _gameOverCurtain = new Pixi.Graphics()
+  private _curtainTexture!: Pixi.RenderTexture
 
   private _firstPersonMode = true
   private _lightsOutMode = false
@@ -131,6 +136,11 @@ export default class StageScene extends SceneBase {
     this._statsPiecesUi.visible = !this._lightsOutMode
     this._screen.addChild(this._statsPiecesUi)
 
+    this._gameOverCurtain.position.x = GRID_SCREEN_X
+    this._gameOverCurtain.position.y = GRID_SCREEN_Y
+    this._gameOverCurtain.zIndex = 120
+    this._screen.addChild(this._gameOverCurtain)
+
     this._nextTetromino = this._getNextTetromino()
     this._currentTetromino = this._spawnTetromino()
 
@@ -210,6 +220,10 @@ export default class StageScene extends SceneBase {
     if (this._state === StageState.DropAnimation) {
       this._updateDropAnimation(frameTime)
     }
+
+    if (this._state === StageState.GameOver) {
+      this._updateGameOver(frameTime)
+    }
   }
 
   public onProcessInput(input: Input): void {
@@ -262,14 +276,22 @@ export default class StageScene extends SceneBase {
     this._nextTetromino = this._getNextTetromino()
 
     this._playerX = Math.ceil(GRID_WIDTH / 2 - tetromino.getSize() / 2)
-    this._playerY = -tetromino.getOffset()
+
+    for (this._playerY = -tetromino.getSize(); this._playerY < -tetromino.getOffset(); ++this._playerY) {
+      if (this._grid.collidesWith(tetromino, this._playerX, this._playerY + 1)) {
+        break
+      }
+    }
 
     tetromino.setX(GRID_SCREEN_X + CELL_SIZE * this._playerX)
     tetromino.setY(GRID_SCREEN_Y + CELL_SIZE * this._playerY)
 
     this._stepTime = 0
 
-    // TODO: Check collision and gameover
+    // Check collision and gameover
+    if (this._playerY < -tetromino.getOffset()) {
+      this._initGameOver()
+    }
 
     return tetromino
   }
@@ -572,5 +594,47 @@ export default class StageScene extends SceneBase {
     const distance = (this._dropTargetY - this._playerY) * CELL_SIZE
 
     this._currentTetromino.position.y = this._dropStartPos + distance * (percent * percent)
+  }
+
+  private _initGameOver(): void {
+    this.app.sound.playSfx('over')
+    this._state = StageState.GameOver
+    this._animationTime = 0
+
+    const baseRenderTexture = new Pixi.BaseRenderTexture({
+      width: 16,
+      height: 16,
+      scaleMode: Pixi.SCALE_MODES.NEAREST,
+      resolution: 1,
+    })
+    this._curtainTexture = new Pixi.RenderTexture(baseRenderTexture)
+
+    const [color1, color2] = this._getColors()
+
+    const curtainBlock = new Pixi.Graphics()
+    curtainBlock.beginFill(0x000000)
+    curtainBlock.drawRect(0, 0, 16, 16)
+    curtainBlock.beginFill(color2)
+    curtainBlock.drawRect(0, 0, 16, 4)
+    curtainBlock.beginFill(0xFFFFFF)
+    curtainBlock.drawRect(0, 4, 16, 6)
+    curtainBlock.beginFill(color1)
+    curtainBlock.drawRect(0, 10, 16, 4)
+
+    this.app.pixi.renderer.render(curtainBlock, this._curtainTexture)
+  }
+
+  private _updateGameOver(frameTime: number): void {
+    if (this._animationTime === this._gameOverAnimationDuration) {
+      // TODO: Go back to title screen with game over info
+    }
+
+    this._animationTime = Math.min(this._animationTime + frameTime, this._gameOverAnimationDuration)
+
+    const percent = this._animationTime / this._gameOverAnimationDuration
+    const curtain = this._gameOverCurtain
+    curtain.clear()
+    curtain.beginTextureFill(this._curtainTexture)
+    curtain.drawRect(0, 0, GRID_WIDTH * CELL_SIZE, GRID_HEIGHT * CELL_SIZE * percent)
   }
 }
