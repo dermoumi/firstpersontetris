@@ -1,7 +1,7 @@
 import SceneBase from 'game/scene/base'
 import GameApp from 'game/app'
 import Tetromino, { TetrominoAngle } from './tetromino'
-import StageGrid, { WIDTH as GRID_WIDTH, CELL_SIZE, CompleteRow } from './grid'
+import StageGrid, { WIDTH as GRID_WIDTH, HEIGHT as GRID_HEIGHT, CELL_SIZE, CompleteRow } from './grid'
 import Input from 'game/input'
 import * as Pixi from 'pixi.js'
 import Block, { BlockType, BLOCK_SIZE } from './block'
@@ -24,6 +24,7 @@ enum StageState {
   Idle,
   RotationAnimation,
   RowAnimation,
+  DropAnimation,
 }
 
 export default class StageScene extends SceneBase {
@@ -42,6 +43,11 @@ export default class StageScene extends SceneBase {
   private _completeRowsBlocks: Block[][] = []
   private _completeRowsContainer = new Pixi.Container()
   private _rowAnimationDuration = 0.5
+
+  private _animateDrop = true
+  private _dropAnimationDuration = 0.2
+  private _dropTargetY = 0
+  private _dropStartPos = 0
 
   private _firstPersonMode = true
   private _lightsOutMode = false
@@ -200,6 +206,10 @@ export default class StageScene extends SceneBase {
     if (this._state === StageState.RowAnimation) {
       this._updateRowAnimation(frameTime)
     }
+
+    if (this._state === StageState.DropAnimation) {
+      this._updateDropAnimation(frameTime)
+    }
   }
 
   public onProcessInput(input: Input): void {
@@ -214,6 +224,10 @@ export default class StageScene extends SceneBase {
 
       if (input.isPressed('rotate', true)) {
         this._rotate()
+      }
+
+      if (input.isPressed('drop')) {
+        this._drop()
       }
     }
   }
@@ -406,6 +420,22 @@ export default class StageScene extends SceneBase {
     }
   }
 
+  private _drop(): void {
+    this._dropTargetY = this._playerY
+    while (!this._grid.collidesWith(this._currentTetromino, this._playerX, this._dropTargetY + 1)) {
+      this._dropTargetY++
+    }
+
+    if (this._animateDrop) {
+      this._state = StageState.DropAnimation
+      this._animationTime = 0
+      this._dropStartPos = this._currentTetromino.position.y
+    } else {
+      this._playerY = this._dropTargetY
+      this._uniteTetromino()
+    }
+  }
+
   private _uniteTetromino(): void {
     const completeRows = this._grid.unite(this._currentTetromino, this._playerX, this._playerY)
     this._grid.update()
@@ -523,5 +553,24 @@ export default class StageScene extends SceneBase {
   private _updateLevel(): void {
     const level = Math.floor(this._lines / 10) + this._startingLevel
     this._setLevel(level)
+  }
+
+  private _updateDropAnimation(frameTime: number): void {
+    if (this._animationTime === this._dropAnimationDuration) {
+      this._playerY = this._dropTargetY
+      this._state = StageState.Idle
+      this._uniteTetromino()
+      return
+    }
+
+    this._animationTime += frameTime
+    if (this._animationTime > this._dropAnimationDuration) {
+      this._animationTime = this._dropAnimationDuration
+    }
+
+    const percent = this._animationTime / this._dropAnimationDuration
+    const distance = (this._dropTargetY - this._playerY) * CELL_SIZE
+
+    this._currentTetromino.position.y = this._dropStartPos + distance * (percent * percent)
   }
 }
