@@ -27,6 +27,7 @@ enum StageState {
   RowAnimation,
   DropAnimation,
   GameOver,
+  AdjustingCamera,
 }
 
 export default class StageScene extends SceneBase {
@@ -54,6 +55,8 @@ export default class StageScene extends SceneBase {
   private _gameOverAnimationDuration = 2.4
   private _gameOverCurtain = new Pixi.Graphics()
   private _curtainTexture!: Pixi.RenderTexture
+
+  private _cameraAdjustTime = 0.1
 
   private _firstPersonMode = true
   private _lightsOutMode = false
@@ -85,6 +88,7 @@ export default class StageScene extends SceneBase {
   private _hiScoreUi!: Pixi.Text
 
   private _screen = new Pixi.Container()
+  private _room = new Pixi.Container()
 
   public constructor(app: GameApp, userdata: StageSceneUserdata = {}) {
     super(app)
@@ -145,7 +149,24 @@ export default class StageScene extends SceneBase {
     this._nextTetromino = this._getNextTetromino()
     this._currentTetromino = this._spawnTetromino()
 
-    this.stage.addChild(this._screen)
+    const roomSprite = Pixi.Sprite.from(GameApp.resources.room.texture)
+    this._room.addChild(roomSprite)
+
+    this._screen.position.x = 740
+    this._screen.position.y = 768
+    this._screen.scale.x = 425 / GameApp.resources.stage.texture.width
+    this._screen.scale.y = 372 / GameApp.resources.stage.texture.height
+    this._room.addChild(this._screen)
+
+    const screenOverlay = Pixi.Sprite.from(GameApp.resources.screen.texture)
+    screenOverlay.position.x = 733
+    screenOverlay.position.y = 761
+    this._room.addChild(screenOverlay)
+
+    this._room.pivot.x = GameApp.resources.room.texture.width / 2
+    this._room.pivot.y = GameApp.resources.room.texture.height / 2
+
+    this.stage.addChild(this._room)
 
     this._updateColors()
   }
@@ -644,5 +665,12 @@ export default class StageScene extends SceneBase {
     curtain.clear()
     curtain.beginTextureFill(this._curtainTexture)
     curtain.drawRect(0, 0, GRID_WIDTH * CELL_SIZE, GRID_HEIGHT * CELL_SIZE * percent)
+  }
+
+  public onResize(width: number, height: number): void {
+    super.onResize(width, height)
+
+    this._room.position.x = width / 2
+    this._room.position.y = height / 2
   }
 }

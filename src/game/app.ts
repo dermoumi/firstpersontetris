@@ -79,6 +79,8 @@ export default class GameApp {
         .add('enter', 'assets/images/enter.png')
         .add('escape', 'assets/images/escape.png')
         .add('space', 'assets/images/space.png')
+        .add('room', 'assets/images/room.jpg')
+        .add('screen', 'assets/images/screen.png')
         .add('checkbox', 'assets/images/checkbox.gif')
         .add('sfx_level', 'assets/sounds/level.mp3')
         .add('sfx_line', 'assets/sounds/line.mp3')
