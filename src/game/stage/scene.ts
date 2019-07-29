@@ -526,7 +526,7 @@ export default class StageScene extends SceneBase {
   }
 
   private _increaseScore(lineCount = 1): void {
-    const score = Constants.SCORE_TABLE[Math.min(lineCount - 1, 3)]
+    const score = Constants.SCORE_TABLE[Math.min(lineCount - 1, 3)] * (this._level + 1)
 
     this._score += score
     this._scoreUi.text = `00000${this._score}`.substr(-6)
