@@ -779,10 +779,43 @@ export default class StageScene extends SceneBase {
   }
 
   public onResize(width: number, height: number): void {
-    super.onResize(width, height)
+    const maxWidth = this._inCrisisMode ? CELL_SIZE * 12 : 1300
+    const maxHeight = this._inCrisisMode ? CELL_SIZE * 12 : 1300
+    const defaultScale = 1.25
+    let scale = defaultScale
 
-    this._room.position.x = width / 2
-    this._room.position.y = height / 2
+    // Check max width first
+    if (width > maxWidth) {
+      scale = width / maxWidth
+    }
+
+    // Check the scaled max height (if scaled)
+    if (height > maxHeight * scale) {
+      scale = height / maxHeight
+    }
+
+    if (scale === defaultScale) {
+      const minWidth = this._inCrisisMode ? CELL_SIZE * 10 : GameApp.resources.screen.texture.width * 1.1
+      const minHeight = this._inCrisisMode ? CELL_SIZE * 12 : GameApp.resources.screen.texture.height * 1.1
+
+      // Then check min width
+      if (width < minWidth) {
+        scale = width / minWidth
+      }
+
+      // then scaled min height last (if scaled)
+      if (height < minHeight * scale) {
+        scale = height / minHeight
+      }
+    }
+
+    this._room.position.x = Math.floor(width / 2)
+    this._room.position.y = Math.floor(height / 2)
+
+    this._room.scale.x = scale
+    this._room.scale.y = scale
+
+    super.onResize(width, height)
   }
 
   private _updateScreenPos(animate = false): void {
@@ -853,6 +886,7 @@ export default class StageScene extends SceneBase {
   }
 
   private _updateCrisisMode(): void {
-
+    const { width, height } = this.app.getSize()
+    this.onResize(width, height)
   }
 }
