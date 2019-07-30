@@ -19,10 +19,11 @@ export default class Sound {
   }
 
   public playSlowMusic(): void {
-    setTimeout((): void => {
-      if (!this._music) return
-      this._music.play()
-    })
+    if (!this._music) return
+    const promise = this._music.play()
+    if (promise !== null) {
+      promise.catch((): void => { this._music && this._music.play() })
+    }
   }
 
   public playFastMusic(): void {
