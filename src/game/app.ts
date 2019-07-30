@@ -94,6 +94,16 @@ export default class GameApp {
       loader.load((_loader: Pixi.Loader, resources: ResourceDict): void => {
         GameApp.resources = resources
         resolve()
+
+        resources.block1.texture.baseTexture.scaleMode = Pixi.SCALE_MODES.NEAREST
+        resources.block2.texture.baseTexture.scaleMode = Pixi.SCALE_MODES.NEAREST
+        resources.stage.texture.baseTexture.scaleMode = Pixi.SCALE_MODES.NEAREST
+        resources.stats.texture.baseTexture.scaleMode = Pixi.SCALE_MODES.NEAREST
+        resources.arrows.texture.baseTexture.scaleMode = Pixi.SCALE_MODES.NEAREST
+        resources.enter.texture.baseTexture.scaleMode = Pixi.SCALE_MODES.NEAREST
+        resources.escape.texture.baseTexture.scaleMode = Pixi.SCALE_MODES.NEAREST
+        resources.space.texture.baseTexture.scaleMode = Pixi.SCALE_MODES.NEAREST
+        resources.checkbox.texture.baseTexture.scaleMode = Pixi.SCALE_MODES.NEAREST
       })
     })
   }
