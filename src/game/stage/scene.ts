@@ -790,8 +790,8 @@ export default class StageScene extends SceneBase {
 
     const tetromino = this._currentTetromino
     const [centerX, centerY] = tetromino.getCenter()
-    const tetrominoX = tetromino.position.x - tetromino.pivot.x + centerX
-    const tetrominoY = tetromino.position.y - tetromino.pivot.y + centerY
+    const tetrominoX = tetromino.position.x - tetromino.pivot.x + centerX * CELL_SIZE
+    const tetrominoY = tetromino.position.y - tetromino.pivot.y + centerY * CELL_SIZE
     const x = this._screen.scale.x * tetrominoX + this._screen.position.x
     const y = this._screen.scale.y * tetrominoY + this._screen.position.y
 
