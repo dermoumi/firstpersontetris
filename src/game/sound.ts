@@ -7,6 +7,8 @@ export default class Sound {
   private _sfxEnabled = true
 
   public setMusic(urlSlow: string, urlFast: string): void {
+    this.stopMusic()
+
     this._music = new Audio(urlSlow)
     this._music.loop = true
     this._music.volume = 0.5

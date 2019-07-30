@@ -130,6 +130,15 @@ export default class SettingsScene extends SceneBase {
       this._inCrisis = !this._inCrisis
       crisisCheckbox.setChecked(this._inCrisis)
       this._saveSettings()
+
+      if (this._inCrisis) {
+        this.app.sound.stopMusic()
+        this.app.sound.setMusic('assets/music/crisis.mp3', 'assets/music/crisis.mp3')
+        this.app.sound.playSlowMusic()
+      } else {
+        this._playMusic()
+      }
+
       this.app.sound.playSfx('beep')
     })
 
@@ -326,6 +335,8 @@ export default class SettingsScene extends SceneBase {
   }
 
   private _playMusic(index: number = this._selectedMusic): void {
+    if (this._inCrisis) return
+
     const sound = this.app.sound
     sound.stopMusic()
 
