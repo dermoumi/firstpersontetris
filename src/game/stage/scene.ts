@@ -18,6 +18,7 @@ export interface StageSceneUserdata {
   firstPerson?: boolean;
   lightsOut?: boolean;
   crisisMode?: boolean;
+  hiScore?: number;
 }
 
 enum StageState {
@@ -140,6 +141,10 @@ export default class StageScene extends SceneBase {
       this._inCrisisMode = userdata.crisisMode
     }
 
+    if (userdata.hiScore !== undefined) {
+      this._hiScore = userdata.hiScore
+    }
+
     this._screen.sortableChildren = true
 
     this._grid.position.x = GRID_SCREEN_X
@@ -158,7 +163,7 @@ export default class StageScene extends SceneBase {
     this._levelUi = this._createUiText(`0${this._level}`.substr(-2), 416, 314)
     this._linesUi = this._createUiText('000', 304, 26)
     this._scoreUi = this._createUiText('000000', 384, 106)
-    this._hiScoreUi = this._createUiText('010000', 384, 58)
+    this._hiScoreUi = this._createUiText(`00000${this._hiScore}`.substr(-6), 384, 58)
 
     const tetrominoTypes = ['T', 'Z', 'J', 'O', 'L', 'S', 'I']
     tetrominoTypes.forEach((type, i): void => {

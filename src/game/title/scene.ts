@@ -24,6 +24,14 @@ export interface TitleUserdata {
   gameOver?: GameOverData;
 }
 
+export interface Settings {
+  hiScore: number;
+  music: number;
+  sfx: boolean;
+  lightsOut: boolean;
+  crisis: boolean;
+}
+
 export default class TitleScene extends SceneBase {
   private _container = new Pixi.Container()
   private _musicCheckboxes: CheckBox[] = []
@@ -31,25 +39,28 @@ export default class TitleScene extends SceneBase {
   private _sfxOn = true
   private _lightsOut = false
   private _inCrisis = false
+  private _hiScore = 10000
 
   public constructor(app: GameApp, userdata: TitleUserdata = {}) {
     super(app)
 
     this._loadSettings()
-    this.app.sound.setSfxEnabled(this._sfxOn)
 
+    if (userdata.gameOver !== undefined) {
+      this._hiScore = userdata.gameOver.hiScore
+      this._saveSettings()
+      this._drawGameOver(userdata.gameOver)
+    } else {
+      this._drawControls()
+    }
+
+    this.app.sound.setSfxEnabled(this._sfxOn)
     this.stage.addChild(this._container)
 
     const titleStyle = {
       fontFamily: 'main',
       fontSize: 24,
       fill: 0xFFFFFF,
-    }
-
-    if (userdata.gameOver !== undefined) {
-      this._drawGameOver(userdata.gameOver)
-    } else {
-      this._drawControls()
     }
 
     const musicTitle = new Pixi.Text('MUSIC', titleStyle)
@@ -82,6 +93,7 @@ export default class TitleScene extends SceneBase {
       this._sfxOn = !this._sfxOn
       sfxCheckbox.setChecked(this._sfxOn)
       this.app.sound.setSfxEnabled(this._sfxOn)
+      this._saveSettings()
       this.app.sound.playSfx('beep')
     })
 
@@ -92,6 +104,7 @@ export default class TitleScene extends SceneBase {
     lightsOutCheckbox.on('pointertap', (): void => {
       this._lightsOut = !this._lightsOut
       lightsOutCheckbox.setChecked(this._lightsOut)
+      this._saveSettings()
       this.app.sound.playSfx('beep')
     })
 
@@ -102,6 +115,7 @@ export default class TitleScene extends SceneBase {
     crisisCheckbox.on('pointertap', (): void => {
       this._inCrisis = !this._inCrisis
       crisisCheckbox.setChecked(this._inCrisis)
+      this._saveSettings()
       this.app.sound.playSfx('beep')
     })
 
@@ -135,11 +149,31 @@ export default class TitleScene extends SceneBase {
   }
 
   private _loadSettings(): void {
-    // TODO: Load settings from local storage
+    const settingsJson = window.localStorage.getItem('settings')
+    if (!settingsJson) return
+
+    try {
+      const settings: Settings = JSON.parse(settingsJson)
+      this._hiScore = settings.hiScore
+      this._selectedMusic = settings.music
+      this._sfxOn = settings.sfx
+      this._lightsOut = settings.lightsOut
+      this._inCrisis = settings.crisis
+    } catch (err) {
+      // Ignore silently
+    }
   }
 
   private _saveSettings(): void {
-    // TODO: Save settings to local storage
+    const settings: Settings = {
+      hiScore: this._hiScore,
+      music: this._selectedMusic,
+      sfx: this._sfxOn,
+      lightsOut: this._lightsOut,
+      crisis: this._inCrisis,
+    }
+
+    window.localStorage.setItem('settings', JSON.stringify(settings))
   }
 
   private _drawControls(): void {
@@ -276,6 +310,7 @@ export default class TitleScene extends SceneBase {
 
   private _startGame(): void {
     this.manager.switchTo(new SceneStage(this.app, {
+      hiScore: this._hiScore,
       lightsOut: this._lightsOut,
       crisisMode: this._inCrisis,
     }))
