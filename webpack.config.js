@@ -2,6 +2,7 @@ const path = require('path')
 const webpack = require('webpack')
 const { CleanWebpackPlugin } = require('clean-webpack-plugin')
 const WorkboxPlugin = require('workbox-webpack-plugin')
+const TerserPlugin = require('terser-webpack-plugin')
 
 module.exports = (env, argv) => {
   const mode = argv.mode || 'production'
@@ -92,6 +93,14 @@ module.exports = (env, argv) => {
             },
           },
         },
+        minimizer: [new TerserPlugin({
+          parallel: true,
+          terserOptions: {
+            output: {
+              comments: false,
+            },
+          },
+        })],
       },
       plugins: [
         ...config.plugins,
