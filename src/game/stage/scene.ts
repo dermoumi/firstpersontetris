@@ -119,6 +119,9 @@ export default class StageScene extends SceneBase {
   private _holdMinDuration = 0.18
   private _holdRepeatInterval = 0.06
 
+  private _dropStartY = -1
+  private _yHoldStart = -1
+
   private PRESS_DIR: Record<string, Function[]> = {
     left: [
       this._pressLeft.bind(this),
@@ -400,7 +403,7 @@ export default class StageScene extends SceneBase {
       }
 
       if (input.isPressed('drop')) {
-        this._drop()
+        this._hardDrop()
       }
 
       if (input.isPressed('pause')) {
@@ -426,6 +429,10 @@ export default class StageScene extends SceneBase {
         if (this._yHoldTimer > this._holdRepeatInterval + this._holdMinDuration) {
           const extraTime = this._yHoldTimer - this._holdMinDuration
           this._yHoldTimer = this._holdMinDuration + (extraTime % this._holdRepeatInterval)
+
+          if (this._yHoldStart === -1) {
+            this._yHoldStart = this._playerY
+          }
 
           this._moveDown()
         }
@@ -494,6 +501,7 @@ export default class StageScene extends SceneBase {
 
   private _releaseDown(): void {
     this._downHeld = false
+    this._yHoldStart = -1
   }
 
   private _getNextTetromino(): Tetromino {
@@ -699,7 +707,8 @@ export default class StageScene extends SceneBase {
     }
   }
 
-  private _drop(): void {
+  private _hardDrop(): void {
+    this._dropStartY = Math.max(0, this._playerY)
     this._dropTargetY = this._playerY
     while (!this._grid.collidesWith(this._currentTetromino, this._playerX, this._dropTargetY + 1)) {
       this._dropTargetY++
@@ -723,6 +732,8 @@ export default class StageScene extends SceneBase {
     if (completeRows.length > 0) {
       this._initRowsAnimation(completeRows)
     } else {
+      this._increaseDropScore()
+
       this.app.sound.playSfx('united')
       this._currentTetromino = this._spawnTetromino()
       this._updateScreenPos(true)
@@ -757,7 +768,9 @@ export default class StageScene extends SceneBase {
 
   private _initRowsAnimation(completeRows: CompleteRow[]): void {
     this._completeRows = completeRows
-    this._increaseLineCount(completeRows.length, true, false)
+    this._increaseLineCount(completeRows.length)
+    this._increaseLineScore(completeRows.length)
+    this._increaseDropScore()
 
     // Play row completed sound
     if (completeRows.length < 4) {
@@ -815,29 +828,16 @@ export default class StageScene extends SceneBase {
     this._statisticsUi[type].text = `00${count}`.substr(-3)
   }
 
-  private _increaseLineCount(count = 1, increaseScore = true, increaseLevel = true): void {
+  private _increaseLineCount(count = 1): void {
     this._lines += count
     this._linesUi.text = `00${this._lines}`.substr(-3)
-
-    if (increaseScore) {
-      this._increaseScore(count)
-    }
-
-    if (increaseLevel) {
-      this._updateLevel()
-    }
   }
 
-  private _increaseScore(lineCount = 1): void {
+  private _increaseLineScore(lineCount = 1): void {
     const score = SCORE_TABLE[Math.min(lineCount - 1, 3)] * (this._level + 1)
 
     this._score += score
-    this._scoreUi.text = `00000${this._score}`.substr(-6)
-
-    if (this._score > this._hiScore) {
-      this._hiScore = this._score
-      this._hiScoreUi.text = this._scoreUi.text
-    }
+    this._updateScore()
   }
 
   private _updateLevel(): void {
@@ -1038,5 +1038,33 @@ export default class StageScene extends SceneBase {
     const percent =  (this._scanLinesTime % this._scanDuration) / this._scanDuration
 
     this._scanLines.position.y = -177 + 582 * percent
+  }
+
+  private _increaseDropScore(currentY = this._playerY): void {
+    const factor = this._level + 1
+
+    let dropScore = 0
+    if (this._dropStartY !== -1) {
+      dropScore = (currentY - this._dropStartY) * factor
+    } else if (this._yHoldStart !== -1) {
+      dropScore = (currentY - this._yHoldStart) * factor
+    }
+
+    if (dropScore > 0) {
+      this._score += dropScore
+      this._updateScore()
+    }
+
+    this._dropStartY = -1
+    this._yHoldStart = -1
+  }
+
+  private _updateScore(): void {
+    this._scoreUi.text = `00000${this._score}`.substr(-6)
+
+    if (this._score > this._hiScore) {
+      this._hiScore = this._score
+      this._hiScoreUi.text = this._scoreUi.text
+    }
   }
 }
