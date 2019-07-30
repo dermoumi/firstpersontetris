@@ -166,14 +166,35 @@ export default class SettingsScene extends SceneBase {
       pushStartText.on('pointertap', (): void => this._startGame())
     }
 
+    this._container.pivot.x = CONTAINER_WIDTH / 2
+    this._container.pivot.y = CONTAINER_HEIGHT / 2
+
     this._drawCreditText()
 
     this._playMusic()
   }
 
   public onResize(width: number, height: number): void {
-    this._container.position.x = Math.floor((width - CONTAINER_WIDTH) / 2)
-    this._container.position.y = Math.floor((height - CONTAINER_HEIGHT) / 2)
+    const minWidth = CONTAINER_WIDTH
+    const minHeight = CONTAINER_HEIGHT
+    let scale = 1
+
+    // Check width first
+    if (width < minWidth) {
+      scale = width / minWidth
+    }
+
+    // Check the scaled height (if scaled)
+    if (height < minHeight * scale) {
+      scale = height / minHeight
+    }
+
+    this._container.position.x = width / 2
+    this._container.position.y = height / 2
+
+    this._container.scale.x = scale
+    this._container.scale.y = scale
+
     super.onResize(width, height)
   }
 
