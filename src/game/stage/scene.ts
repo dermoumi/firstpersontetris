@@ -758,7 +758,7 @@ export default class StageScene extends SceneBase {
     const x = this._screen.scale.x * tetrominoX + this._screen.position.x
     const y = this._screen.scale.y * tetrominoY + this._screen.position.y
 
-    if (animate) {
+    if (animate && this._state === StageState.Idle) {
       this._adjustCameraTarget = [x, y]
       this._adjustCameraSource = [this._room.pivot.x, this._room.pivot.y]
       this._animationTime = 0
