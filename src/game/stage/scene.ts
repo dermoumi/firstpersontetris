@@ -57,6 +57,8 @@ export default class StageScene extends SceneBase {
   private _curtainTexture!: Pixi.RenderTexture
 
   private _cameraAdjustTime = 0.2
+  private _adjustCameraTarget: [number, number] = [0, 0]
+  private _adjustCameraSource: [number, number] = [0, 0]
 
   private _lastTetrominoAngle = TetrominoAngle.Deg0
 
@@ -277,6 +279,10 @@ export default class StageScene extends SceneBase {
     if (this._state === StageState.GameOver) {
       this._updateGameOver(frameTime)
     }
+
+    if (this._state === StageState.AdjustingCamera) {
+      this._updateCameraAdjustment(frameTime)
+    }
   }
 
   public onProcessInput(input: Input): void {
@@ -392,6 +398,9 @@ export default class StageScene extends SceneBase {
 
   private _updateRowAnimation(frameTime: number): void {
     if (this._animationTime === this._rowAnimationDuration) {
+      // Shift back to the idle state and leave method
+      this._state = StageState.Idle
+
       // Update level
       this._updateLevel()
 
@@ -406,11 +415,8 @@ export default class StageScene extends SceneBase {
 
       // Spawn new tetromino now that the animation has ended
       this._currentTetromino = this._spawnTetromino()
-      this._updateScreenPos()
+      this._updateScreenPos(true)
       this._updateScreenRotation()
-
-      // Shift back to the idle state and leave method
-      this._state = StageState.Idle
       return
     }
 
@@ -544,7 +550,7 @@ export default class StageScene extends SceneBase {
     } else {
       this.app.sound.playSfx('united')
       this._currentTetromino = this._spawnTetromino()
-      this._updateScreenPos()
+      this._updateScreenPos(true)
       this._updateScreenRotation()
     }
   }
@@ -718,7 +724,10 @@ export default class StageScene extends SceneBase {
       }))
     }
 
-    this._animationTime = Math.min(this._animationTime + frameTime, this._gameOverAnimationDuration)
+    this._animationTime = this._animationTime + frameTime
+    if (this._animationTime > this._gameOverAnimationDuration) {
+      this._animationTime = this._gameOverAnimationDuration
+    }
 
     const percent = this._animationTime / this._gameOverAnimationDuration
     const curtain = this._gameOverCurtain
@@ -734,7 +743,7 @@ export default class StageScene extends SceneBase {
     this._room.position.y = height / 2
   }
 
-  private _updateScreenPos(): void {
+  private _updateScreenPos(animate = false): void {
     if (!this._firstPersonMode) return
 
     const tetromino = this._currentTetromino
@@ -744,8 +753,15 @@ export default class StageScene extends SceneBase {
     const x = this._screen.scale.x * tetrominoX + this._screen.position.x
     const y = this._screen.scale.y * tetrominoY + this._screen.position.y
 
-    this._room.pivot.x = x
-    this._room.pivot.y = y
+    if (animate) {
+      this._adjustCameraTarget = [x, y]
+      this._adjustCameraSource = [this._room.pivot.x, this._room.pivot.y]
+      this._animationTime = 0
+      this._state = StageState.AdjustingCamera
+    } else {
+      this._room.pivot.x = x
+      this._room.pivot.y = y
+    }
   }
 
   private _updateScreenRotation(): void {
@@ -755,5 +771,22 @@ export default class StageScene extends SceneBase {
     const angle = tetromino.getAngle() as number
     const lastAngle = this._lastTetrominoAngle as number
     this._room.angle = - lastAngle * 90 - angle * 90 - tetromino.angle
+  }
+
+  private _updateCameraAdjustment(frameTime: number): void {
+    if (this._animationTime === this._cameraAdjustTime) {
+      this._state = StageState.Idle
+    }
+
+    this._animationTime += frameTime
+    if (this._animationTime > this._cameraAdjustTime) {
+      this._animationTime = this._cameraAdjustTime
+    }
+
+    const percent = this._animationTime / this._cameraAdjustTime
+    const [targetX, targetY] = this._adjustCameraTarget
+    const [sourceX, sourceY] = this._adjustCameraSource
+    this._room.pivot.x = sourceX + (targetX - sourceX) * percent
+    this._room.pivot.y = sourceY + (targetY - sourceY) * percent
   }
 }
