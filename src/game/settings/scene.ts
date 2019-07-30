@@ -332,11 +332,7 @@ export default class SettingsScene extends SceneBase {
     if (index >= 3) return
 
     const [ music, musicFast ] = MUSIC_TRACKS[index]
-    sound.setMusic(music, musicFast, {
-      preload: true,
-      loop: true,
-      volume: 0.5,
-    })
+    sound.setMusic(music, musicFast)
     sound.playSlowMusic()
   }
 
