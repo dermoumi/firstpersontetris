@@ -92,6 +92,33 @@ export default class StageScene extends SceneBase {
   private _screen = new Pixi.Container()
   private _room = new Pixi.Container()
 
+  private MOVE_DIR = {
+    left: [
+      this._moveLeft.bind(this),
+      (): void => {},
+      this._moveRight.bind(this),
+      this._moveDown.bind(this),
+    ],
+    right: [
+      this._moveRight.bind(this),
+      this._moveDown.bind(this),
+      this._moveLeft.bind(this),
+      (): void => {},
+    ],
+    down: [
+      this._moveDown.bind(this),
+      this._moveLeft.bind(this),
+      (): void => {},
+      this._moveRight.bind(this),
+    ],
+    up: [
+      (): void => {},
+      this._moveRight.bind(this),
+      this._moveDown.bind(this),
+      this._moveLeft.bind(this),
+    ],
+  }
+
   public constructor(app: GameApp, userdata: StageSceneUserdata = {}) {
     super(app)
 
@@ -257,53 +284,25 @@ export default class StageScene extends SceneBase {
       const angle = (this._lastTetrominoAngle + this._currentTetromino.getAngle()) % 4
 
       if (input.isPressed('left', true)) {
-        switch(angle) {
-          case TetrominoAngle.Deg0:
-            this._moveLeft()
-            break
-          case TetrominoAngle.Deg180:
-            this._moveRight()
-            break
-          case TetrominoAngle.Deg270:
-            this._moveDown()
-            break
+        if (this._firstPersonMode) {
+          this.MOVE_DIR['left'][angle]()
+        } else {
+          this._moveLeft()
         }
       } else if (input.isPressed('right', true)) {
-        switch(angle) {
-          case TetrominoAngle.Deg0:
-            this._moveRight()
-            break
-          case TetrominoAngle.Deg180:
-            this._moveLeft()
-            break
-          case TetrominoAngle.Deg90:
-            this._moveDown()
-            break
+        if (this._firstPersonMode) {
+          this.MOVE_DIR['right'][angle]()
+        } else {
+          this._moveRight()
         }
       } else if (input.isPressed('down', true)) {
-        switch(angle) {
-          case TetrominoAngle.Deg0:
-            this._moveDown()
-            break
-          case TetrominoAngle.Deg90:
-            this._moveLeft()
-            break
-          case TetrominoAngle.Deg270:
-            this._moveRight()
-            break
+        if (this._firstPersonMode) {
+          this.MOVE_DIR['down'][angle]()
+        } else {
+          this._moveDown()
         }
       } else if (input.isPressed('up', true)) {
-        switch(angle) {
-          case TetrominoAngle.Deg90:
-            this._moveRight()
-            break
-          case TetrominoAngle.Deg180:
-            this._moveDown()
-            break
-          case TetrominoAngle.Deg270:
-            this._moveLeft()
-            break
-        }
+        if (this._firstPersonMode) this.MOVE_DIR['up'][angle]()
       }
 
       if (input.isPressed('rotate', true)) {
