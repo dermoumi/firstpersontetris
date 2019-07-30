@@ -66,6 +66,10 @@ export default class StageScene extends SceneBase {
   private _adjustCameraTarget: [number, number] = [0, 0]
   private _adjustCameraSource: [number, number] = [0, 0]
 
+  private _flickerCounter = 0
+  private _scanLinesTime = 0
+  private _scanDuration = 3
+
   private _lastTetrominoAngle = TetrominoAngle.Deg0
 
   private _firstPersonMode = true
@@ -96,6 +100,9 @@ export default class StageScene extends SceneBase {
 
   private _hiScore = 10000
   private _hiScoreUi!: Pixi.Text
+
+  private _flicker = new Pixi.Graphics()
+  private _scanLines = new Pixi.Graphics()
 
   private _screenUi: Pixi.Sprite
   private _roomBg: Pixi.Sprite
@@ -157,9 +164,23 @@ export default class StageScene extends SceneBase {
     this._completeRowsContainer.position.y = GRID_SCREEN_Y
     this._screen.addChild(this._completeRowsContainer)
 
-    this._screenUi = Pixi.Sprite.from(GameApp.resources.stage.texture)
+    const stageTexture = GameApp.resources.stage.texture
+
+    this._screenUi = Pixi.Sprite.from(stageTexture)
     this._screenUi.zIndex = 100
     this._screen.addChild(this._screenUi)
+
+    this._flicker.alpha = 0.05
+    this._flicker.zIndex = 120
+    this._flicker.beginFill(0x000000)
+    this._flicker.drawRect(0, 0, stageTexture.width, stageTexture.height)
+    this._screen.addChild(this._flicker)
+
+    this._scanLines.alpha = 0.15
+    this._scanLines.zIndex = 125
+    this._scanLines.beginFill(0x000000)
+    this._scanLines.drawRect(0, 0, stageTexture.width, 176)
+    this._screen.addChild(this._scanLines)
 
     this._levelUi = this._createUiText(`0${this._level}`.substr(-2), 416, 314)
     this._linesUi = this._createUiText('000', 304, 26)
@@ -190,13 +211,13 @@ export default class StageScene extends SceneBase {
 
     this._screen.position.x = 740
     this._screen.position.y = 768
-    this._screen.scale.x = 425 / GameApp.resources.stage.texture.width
-    this._screen.scale.y = 372 / GameApp.resources.stage.texture.height
+    this._screen.scale.x = 425 / stageTexture.width
+    this._screen.scale.y = 372 / stageTexture.height
     this._room.addChild(this._screen)
 
     this._screenOverlay = Pixi.Sprite.from(GameApp.resources.screen.texture)
     this._screenOverlay.position.x = 733
-    this._screenOverlay.position.y = 761
+    this._screenOverlay.position.y = 584
     this._room.addChild(this._screenOverlay)
 
     this._room.pivot.x = GameApp.resources.room.texture.width / 2
@@ -318,6 +339,8 @@ export default class StageScene extends SceneBase {
     if (this._state === StageState.AdjustingCamera) {
       this._updateCameraAdjustment(frameTime)
     }
+
+    this._updateFlicker(frameTime)
   }
 
   public onProcessInput(input: Input): void {
@@ -883,10 +906,21 @@ export default class StageScene extends SceneBase {
     this._roomBg.visible = visible
     this._nextTetromino.visible = visible
     this._statsPiecesUi.visible = visible
+    this._flicker.visible = visible
+    this._scanLines.visible = visible
   }
 
   private _updateCrisisMode(): void {
     const { width, height } = this.app.getSize()
     this.onResize(width, height)
+  }
+
+  private _updateFlicker(frameTime: number): void {
+    this._flicker.alpha = 0.02 + 0.02 * (Math.floor(this._flickerCounter++ / 4) % 3)
+
+    this._scanLinesTime += frameTime
+    const percent =  (this._scanLinesTime % this._scanDuration) / this._scanDuration
+
+    this._scanLines.position.y = -177 + 582 * percent
   }
 }
