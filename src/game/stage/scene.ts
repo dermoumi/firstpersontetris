@@ -631,7 +631,7 @@ export default class StageScene extends SceneBase {
   private _setLevel(level: number): void {
     if (this._level === level) return
 
-    this._level += level
+    this._level = level
     this._levelUi.text = `0${level}`.substr(-2)
 
     this._updateColors()
