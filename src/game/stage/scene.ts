@@ -569,7 +569,7 @@ export default class StageScene extends SceneBase {
     if (this._animateDrop) {
       this._state = StageState.DropAnimation
       this._animationTime = 0
-      this._dropStartPos = this._currentTetromino.position.y
+      this._dropStartPos = this._currentTetromino.position.y - this._currentTetromino.pivot.y
     } else {
       this._playerY = this._dropTargetY
       this._uniteTetromino()
