@@ -8,7 +8,7 @@ module.exports = {
     sourceType: 'module',
   },
   rules: {
-    'indent': ['error', 2],
+    'indent': 'off',
     '@typescript-eslint/indent': ['error', 2],
     'semi': ['error', 'never'],
     'comma-dangle': ['error', 'always-multiline'],

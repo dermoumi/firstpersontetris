@@ -40,7 +40,7 @@ export default class StageScene extends SceneBase {
   private _animationTime = 0
 
   private _animateRotation = true
-  private _rotationDuration = 0.1
+  private _rotationDuration = 0.2
 
   private _completeRows: CompleteRow[] = []
   private _completeRowsBlocks: Block[][] = []
@@ -56,7 +56,9 @@ export default class StageScene extends SceneBase {
   private _gameOverCurtain = new Pixi.Graphics()
   private _curtainTexture!: Pixi.RenderTexture
 
-  private _cameraAdjustTime = 0.1
+  private _cameraAdjustTime = 0.2
+
+  private _lastTetrominoAngle = TetrominoAngle.Deg0
 
   private _firstPersonMode = true
   private _lightsOutMode = false
@@ -169,6 +171,8 @@ export default class StageScene extends SceneBase {
     this.stage.addChild(this._room)
 
     this._updateColors()
+    this._updateScreenPos()
+    this._updateScreenRotation()
   }
 
   private _getColors(): [number, number] {
@@ -250,12 +254,56 @@ export default class StageScene extends SceneBase {
 
   public onProcessInput(input: Input): void {
     if (this._state === StageState.Idle) {
+      const angle = (this._lastTetrominoAngle + this._currentTetromino.getAngle()) % 4
+
       if (input.isPressed('left', true)) {
-        this._moveLeft()
+        switch(angle) {
+          case TetrominoAngle.Deg0:
+            this._moveLeft()
+            break
+          case TetrominoAngle.Deg180:
+            this._moveRight()
+            break
+          case TetrominoAngle.Deg270:
+            this._moveDown()
+            break
+        }
       } else if (input.isPressed('right', true)) {
-        this._moveRight()
+        switch(angle) {
+          case TetrominoAngle.Deg0:
+            this._moveRight()
+            break
+          case TetrominoAngle.Deg180:
+            this._moveLeft()
+            break
+          case TetrominoAngle.Deg90:
+            this._moveDown()
+            break
+        }
       } else if (input.isPressed('down', true)) {
-        this._moveDown(true)
+        switch(angle) {
+          case TetrominoAngle.Deg0:
+            this._moveDown()
+            break
+          case TetrominoAngle.Deg90:
+            this._moveLeft()
+            break
+          case TetrominoAngle.Deg270:
+            this._moveRight()
+            break
+        }
+      } else if (input.isPressed('up', true)) {
+        switch(angle) {
+          case TetrominoAngle.Deg90:
+            this._moveRight()
+            break
+          case TetrominoAngle.Deg180:
+            this._moveDown()
+            break
+          case TetrominoAngle.Deg270:
+            this._moveLeft()
+            break
+        }
       }
 
       if (input.isPressed('rotate', true)) {
@@ -289,6 +337,7 @@ export default class StageScene extends SceneBase {
   private _spawnTetromino(): Tetromino {
     if (this._currentTetromino) {
       this._screen.removeChild(this._currentTetromino)
+      this._lastTetrominoAngle = (this._lastTetrominoAngle + this._currentTetromino.getAngle()) % 4
     }
 
     const tetromino = this._nextTetromino
@@ -339,6 +388,7 @@ export default class StageScene extends SceneBase {
 
     const percent = this._animationTime / this._rotationDuration
     this._currentTetromino.angle = -90 + 90 * percent
+    this._updateScreenRotation()
   }
 
   private _updateRowAnimation(frameTime: number): void {
@@ -357,6 +407,8 @@ export default class StageScene extends SceneBase {
 
       // Spawn new tetromino now that the animation has ended
       this._currentTetromino = this._spawnTetromino()
+      this._updateScreenPos()
+      this._updateScreenRotation()
 
       // Shift back to the idle state and leave method
       this._state = StageState.Idle
@@ -407,6 +459,7 @@ export default class StageScene extends SceneBase {
     if (!this._grid.collidesWith(this._currentTetromino, this._playerX - 1, this._playerY)) {
       this._playerX--
       this._currentTetromino.setX(GRID_SCREEN_X + this._playerX * CELL_SIZE)
+      this._updateScreenPos()
     }
   }
 
@@ -414,6 +467,7 @@ export default class StageScene extends SceneBase {
     if (!this._grid.collidesWith(this._currentTetromino, this._playerX + 1, this._playerY)) {
       this._playerX++
       this._currentTetromino.setX(GRID_SCREEN_X + this._playerX * CELL_SIZE)
+      this._updateScreenPos()
     }
   }
 
@@ -423,6 +477,7 @@ export default class StageScene extends SceneBase {
     } else {
       this._playerY++
       this._currentTetromino.setY(GRID_SCREEN_Y + this._playerY * CELL_SIZE)
+      this._updateScreenPos()
       if (resetStepTime) {
         this._stepTime = 0
       }
@@ -490,6 +545,8 @@ export default class StageScene extends SceneBase {
     } else {
       this.app.sound.playSfx('united')
       this._currentTetromino = this._spawnTetromino()
+      this._updateScreenPos()
+      this._updateScreenRotation()
     }
   }
 
@@ -502,6 +559,7 @@ export default class StageScene extends SceneBase {
     this._currentTetromino.setX(GRID_SCREEN_X + this._playerX * CELL_SIZE)
     this._currentTetromino.setY(GRID_SCREEN_Y + this._playerY * CELL_SIZE)
     this._currentTetromino.update()
+    this._updateScreenPos()
 
     // Reset step time when rotating if lock delay is on
     if (this._hasLockDelay && this._grid.collidesWith(this._currentTetromino, this._playerX, this._playerY + 1)) {
@@ -512,6 +570,8 @@ export default class StageScene extends SceneBase {
       this._animationTime = 0
       this._currentTetromino.angle = -90
       this._state = StageState.RotationAnimation
+    } else {
+      this._updateScreenRotation()
     }
   }
 
@@ -615,7 +675,8 @@ export default class StageScene extends SceneBase {
     const percent = this._animationTime / this._dropAnimationDuration
     const distance = (this._dropTargetY - this._playerY) * CELL_SIZE
 
-    this._currentTetromino.position.y = this._dropStartPos + distance * (percent * percent)
+    this._currentTetromino.setY(this._dropStartPos + distance * (percent * percent))
+    this._updateScreenPos()
   }
 
   private _initGameOver(): void {
@@ -672,5 +733,30 @@ export default class StageScene extends SceneBase {
 
     this._room.position.x = width / 2
     this._room.position.y = height / 2
+  }
+
+  private _updateScreenPos(): void {
+    if (!this._firstPersonMode) return
+
+    const tetromino = this._currentTetromino
+    const [centerX, centerY] = tetromino.getCenter()
+    const tetrominoX = tetromino.position.x - tetromino.pivot.x + centerX
+    const tetrominoY = tetromino.position.y - tetromino.pivot.y + centerY
+    const x = this._screen.scale.x * tetrominoX + this._screen.position.x
+    const y = this._screen.scale.y * tetrominoY + this._screen.position.y
+
+    this._room.pivot.x = x
+    this._room.pivot.y = y
+  }
+
+  private _updateScreenRotation(): void {
+    if (!this._firstPersonMode) return
+
+    const tetromino = this._currentTetromino
+    const angle = tetromino.getAngle() as number
+    const lastAngle = this._lastTetrominoAngle as number
+    this._room.angle = - lastAngle * 90 - angle * 90 - tetromino.angle
+
+    console.debug(angle, lastAngle, this._room.angle)
   }
 }
