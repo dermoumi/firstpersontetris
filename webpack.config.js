@@ -96,6 +96,9 @@ module.exports = (env, argv) => {
         minimizer: [new TerserPlugin({
           parallel: true,
           terserOptions: {
+            compress: {
+              'drop_console': true,
+            },
             output: {
               comments: false,
             },
