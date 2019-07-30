@@ -11,7 +11,7 @@ function hideSplash(): void {
 }
 
 // Lazily load the game app
-import(/* webpackChunkName: "game" */ '../game/app').then(async (module): Promise<void> => {
+import(/* webpackChunkName: "game" */ 'game/app').then(async (module): Promise<void> => {
   // Make sure the container element exists
   const container = document.getElementById('game')
   if (!container) {

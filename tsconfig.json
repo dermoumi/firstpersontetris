@@ -1,13 +1,20 @@
 {
   "compilerOptions": {
     "baseUrl": "./src",
-    "module": "commonjs",
-    "noImplicitAny": true,
-    "removeComments": true,
+    "module": "esnext",
     "sourceMap": true,
     "preserveConstEnums": true,
+    "moduleResolution": "node",
+    "target": "es5",
     "lib": ["es6", "dom"],
+    "importHelpers": true,
     "strict": true,
+    "noErrorTruncation": true,
+    "noImplicitReturns": true,
+    // "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "removeComments": false, // <= Keep false. Conflicts with webpack chunk module imports
+    "resolveJsonModule": true,
   },
   "include": [
     "./**/*.ts"
