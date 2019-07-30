@@ -37,7 +37,7 @@ export default class SceneBase {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public onUpdate(_frameTime: number): false | void {
+  public onUpdate(_frameTime: number): true | void {
     // Nothing to do
   }
 

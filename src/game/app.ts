@@ -1,6 +1,6 @@
 import * as Pixi from 'pixi.js'
 import SceneManager from 'game/scene/manager'
-import TitleScene from 'game/title/scene'
+import SettingsScene from 'game/settings/scene'
 import Input from 'game/input'
 import Sound from 'game/sound'
 
@@ -47,7 +47,7 @@ export default class GameApp {
 
   public run(): void {
     // Start with the title scene
-    this.sceneManager.switchTo(new TitleScene(this))
+    this.sceneManager.switchTo(new SettingsScene(this))
 
     // Handle window resizes
     this.onResize()
@@ -89,6 +89,7 @@ export default class GameApp {
         .add('sfx_tetris', 'assets/sounds/tetris.mp3')
         .add('sfx_united', 'assets/sounds/united.mp3')
         .add('sfx_beep', 'assets/sounds/beep.mp3')
+        .add('sfx_pause', 'assets/sounds/pause.mp3')
 
       loader.load((_loader: Pixi.Loader, resources: ResourceDict): void => {
         GameApp.resources = resources

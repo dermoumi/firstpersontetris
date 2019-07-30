@@ -13,7 +13,7 @@ const MUSIC_TRACKS: [string, string][] = [
   ['assets/music/type3.mp3', 'assets/music/type3fast.mp3'],
 ]
 
-export interface GameOverData {
+export interface StageData {
   level: number;
   lines: number;
   score: number;
@@ -21,7 +21,8 @@ export interface GameOverData {
 }
 
 export interface TitleUserdata {
-  gameOver?: GameOverData;
+  gameOver?: StageData;
+  pause?: StageData;
 }
 
 export interface Settings {
@@ -32,7 +33,7 @@ export interface Settings {
   crisis: boolean;
 }
 
-export default class TitleScene extends SceneBase {
+export default class SettingsScene extends SceneBase {
   private _container = new Pixi.Container()
   private _musicCheckboxes: CheckBox[] = []
   private _selectedMusic = 0
@@ -40,16 +41,24 @@ export default class TitleScene extends SceneBase {
   private _lightsOut = false
   private _inCrisis = false
   private _hiScore = 10000
+  private _isPaused = false
 
   public constructor(app: GameApp, userdata: TitleUserdata = {}) {
     super(app)
 
     this._loadSettings()
 
+    let titleString = "IT'S FIRST-PERSON TETRIS"
     if (userdata.gameOver !== undefined) {
+      titleString = "GAME OVER"
       this._hiScore = userdata.gameOver.hiScore
       this._saveSettings()
-      this._drawGameOver(userdata.gameOver)
+      this._drawStageData(userdata.gameOver)
+    } else if (userdata.pause) {
+      titleString = "PAUSED"
+      this._isPaused = true
+      this.app.sound.playSfx('pause')
+      this._drawStageData(userdata.pause)
     } else {
       this._drawControls()
     }
@@ -63,16 +72,21 @@ export default class TitleScene extends SceneBase {
       fill: 0xFFFFFF,
     }
 
+    const gameTitle = new Pixi.Text(titleString, titleStyle)
+    gameTitle.position.x = 24
+    gameTitle.position.y = 24
+    this._container.addChild(gameTitle)
+
     const musicTitle = new Pixi.Text('MUSIC', titleStyle)
     musicTitle.position.x = 24
-    musicTitle.position.y = 140
+    musicTitle.position.y = 180
     this._container.addChild(musicTitle)
 
     for (let i = 0; i < 4; ++i) {
       const selected = (i === this._selectedMusic)
       const checkBox = new CheckBox(i == 3 ? 'OFF' : `TYPE${i+1}`, selected)
       checkBox.position.x = 38 + i * 160
-      checkBox.position.y = 180
+      checkBox.position.y = 220
       checkBox.interactive = !selected
       checkBox.buttonMode = !selected
       this._container.addChild(checkBox)
@@ -82,12 +96,12 @@ export default class TitleScene extends SceneBase {
 
     const optionsTitle = new Pixi.Text('OPTIONS', titleStyle)
     optionsTitle.position.x = 24
-    optionsTitle.position.y = 240
+    optionsTitle.position.y = 280
     this._container.addChild(optionsTitle)
 
     const sfxCheckbox = new CheckBox('SFX', this._sfxOn)
     sfxCheckbox.position.x = 38
-    sfxCheckbox.position.y = 280
+    sfxCheckbox.position.y = 320
     this._container.addChild(sfxCheckbox)
     sfxCheckbox.on('pointertap', (): void => {
       this._sfxOn = !this._sfxOn
@@ -99,7 +113,7 @@ export default class TitleScene extends SceneBase {
 
     const lightsOutCheckbox = new CheckBox('LIGHTS OUT', this._lightsOut)
     lightsOutCheckbox.position.x = 168
-    lightsOutCheckbox.position.y = 280
+    lightsOutCheckbox.position.y = 320
     this._container.addChild(lightsOutCheckbox)
     lightsOutCheckbox.on('pointertap', (): void => {
       this._lightsOut = !this._lightsOut
@@ -110,7 +124,7 @@ export default class TitleScene extends SceneBase {
 
     const crisisCheckbox = new CheckBox('IN CRISIS', this._inCrisis)
     crisisCheckbox.position.x = 418
-    crisisCheckbox.position.y = 280
+    crisisCheckbox.position.y = 320
     this._container.addChild(crisisCheckbox)
     crisisCheckbox.on('pointertap', (): void => {
       this._inCrisis = !this._inCrisis
@@ -119,19 +133,31 @@ export default class TitleScene extends SceneBase {
       this.app.sound.playSfx('beep')
     })
 
-    const pushStartText = new Pixi.Text('PUSH START', {
+    const buttonStyle = {
       fontFamily: 'main',
       fontSize: 32,
-      fill: 0xFFCC00,
-    })
-    pushStartText.position.x = Math.floor((CONTAINER_WIDTH - pushStartText.width) / 2)
-    pushStartText.position.y = 356
-    this._container.addChild(pushStartText)
-    pushStartText.interactive = true
-    pushStartText.buttonMode = true
-    pushStartText.on('pointertap', (): void => this._startGame())
+      fill: 0x3CBCFC,
+    }
 
-    this._setupCreditsText()
+    if (this._isPaused) {
+      const resumeText = new Pixi.Text('RESUME', buttonStyle)
+      resumeText.position.x = Math.floor((CONTAINER_WIDTH - resumeText.width) / 2)
+      resumeText.position.y = 376
+      this._container.addChild(resumeText)
+      resumeText.interactive = true
+      resumeText.buttonMode = true
+      resumeText.on('pointertap', (): void => this._resumeGame())
+    } else {
+      const pushStartText = new Pixi.Text('PUSH START', buttonStyle)
+      pushStartText.position.x = Math.floor((CONTAINER_WIDTH - pushStartText.width) / 2)
+      pushStartText.position.y = 376
+      this._container.addChild(pushStartText)
+      pushStartText.interactive = true
+      pushStartText.buttonMode = true
+      pushStartText.on('pointertap', (): void => this._startGame())
+    }
+
+    this._drawCreditText()
 
     this._playMusic()
   }
@@ -143,8 +169,14 @@ export default class TitleScene extends SceneBase {
   }
 
   public onProcessInput(input: Input): void {
-    if (input.isPressed('drop')) {
-      this._startGame()
+    if (this._isPaused) {
+      if (input.isPressed('pause')) {
+        this._resumeGame()
+      }
+    } else {
+      if (input.isPressed('drop')) {
+        this._startGame()
+      }
     }
   }
 
@@ -185,46 +217,46 @@ export default class TitleScene extends SceneBase {
 
     const arrows = Pixi.Sprite.from(GameApp.resources.arrows.texture)
     arrows.position.x = 24
-    arrows.position.y = 24
+    arrows.position.y = 64
     this._container.addChild(arrows)
 
     const arrowsLabel = new Pixi.Text('MOVE', labelStyle)
     arrowsLabel.position.x = arrows.position.x + (arrows.width - arrowsLabel.width) / 2
-    arrowsLabel.position.y = 96
+    arrowsLabel.position.y = 136
     this._container.addChild(arrowsLabel)
 
     const space = Pixi.Sprite.from(GameApp.resources.space.texture)
     space.position.x = 181
-    space.position.y = 60
+    space.position.y = 100
     this._container.addChild(space)
 
     const spaceLabel = new Pixi.Text('ROTATE', labelStyle)
     spaceLabel.position.x = space.position.x + (space.width - spaceLabel.width) / 2
-    spaceLabel.position.y = 96
+    spaceLabel.position.y = 136
     this._container.addChild(spaceLabel)
 
     const enter = Pixi.Sprite.from(GameApp.resources.enter.texture)
     enter.position.x = 386
-    enter.position.y = 54
+    enter.position.y = 94
     this._container.addChild(enter)
 
     const enterLabel = new Pixi.Text('DROP', labelStyle)
     enterLabel.position.x = enter.position.x + (enter.width - enterLabel.width) / 2
-    enterLabel.position.y = 96
+    enterLabel.position.y = 136
     this._container.addChild(enterLabel)
 
     const escape = Pixi.Sprite.from(GameApp.resources.escape.texture)
     escape.position.x = 547
-    escape.position.y = 54
+    escape.position.y = 94
     this._container.addChild(escape)
 
     const escapeLabel = new Pixi.Text('PAUSE', labelStyle)
     escapeLabel.position.x = escape.position.x + (escape.width - escapeLabel.width) / 2
-    escapeLabel.position.y = 96
+    escapeLabel.position.y = 136
     this._container.addChild(escapeLabel)
   }
 
-  private _drawGameOver(data: GameOverData): void {
+  private _drawStageData(data: StageData): void {
     const labelStyle = {
       fontFamily: 'main',
       fontSize: 18,
@@ -238,43 +270,43 @@ export default class TitleScene extends SceneBase {
     }
 
     const levelLabel = new Pixi.Text('LEVEL', labelStyle)
-    levelLabel.position.x = 310 - levelLabel.width
-    levelLabel.position.y = 24
+    levelLabel.position.x = 38
+    levelLabel.position.y = 64
     this._container.addChild(levelLabel)
 
     const linesLabel = new Pixi.Text('LINES', labelStyle)
-    linesLabel.position.x = 310 - linesLabel.width
-    linesLabel.position.y = 44
+    linesLabel.position.x = 38
+    linesLabel.position.y = 84
     this._container.addChild(linesLabel)
 
     const scoreLabel = new Pixi.Text('SCORE', labelStyle)
-    scoreLabel.position.x = 310 - scoreLabel.width
-    scoreLabel.position.y = 64
+    scoreLabel.position.x = 38
+    scoreLabel.position.y = 104
     this._container.addChild(scoreLabel)
 
     const hiScoreLabel = new Pixi.Text('TOP SCORE', labelStyle)
-    hiScoreLabel.position.x = 310 - hiScoreLabel.width
-    hiScoreLabel.position.y = 84
+    hiScoreLabel.position.x = 38
+    hiScoreLabel.position.y = 124
     this._container.addChild(hiScoreLabel)
 
     const level = new Pixi.Text(data.level.toString(), valueStyle)
-    level.position.x = 330
-    level.position.y = 24
+    level.position.x = 180
+    level.position.y = 64
     this._container.addChild(level)
 
     const lines = new Pixi.Text(data.lines.toString(), valueStyle)
-    lines.position.x = 330
-    lines.position.y = 44
+    lines.position.x = 180
+    lines.position.y = 84
     this._container.addChild(lines)
 
     const score = new Pixi.Text(data.score.toString(), valueStyle)
-    score.position.x = 330
-    score.position.y = 64
+    score.position.x = 180
+    score.position.y = 104
     this._container.addChild(score)
 
     const hiScore = new Pixi.Text(data.hiScore.toString(), valueStyle)
-    hiScore.position.x = 330
-    hiScore.position.y = 84
+    hiScore.position.x = 180
+    hiScore.position.y = 124
     this._container.addChild(hiScore)
   }
 
@@ -317,16 +349,21 @@ export default class TitleScene extends SceneBase {
     this.app.sound.playSfx('beep')
   }
 
-  private _setupCreditsText(): void {
+  private _resumeGame(): void {
+    this.manager.pop()
+    this.app.sound.playSfx('pause')
+  }
+
+  private _drawCreditText(): void {
     const creditText = {
       fontFamily: 'main',
-      fontSize: 16,
+      fontSize: 12,
       fill: 0x7C7C7C,
     }
 
     const linkText = {
       fontFamily: 'main',
-      fontSize: 16,
+      fontSize: 12,
       fill: 0xAAAAAA,
     }
 
@@ -334,7 +371,7 @@ export default class TitleScene extends SceneBase {
     const text2 = new Pixi.Text('@sdrmme', linkText)
 
     text1.position.x = (CONTAINER_WIDTH - text1.width - text2.width) / 2
-    text1.position.y = CONTAINER_HEIGHT - 40
+    text1.position.y = CONTAINER_HEIGHT - 32
     this._container.addChild(text1)
 
     text2.position.x = text1.position.x + text1.width
@@ -350,7 +387,7 @@ export default class TitleScene extends SceneBase {
     const text4 = new Pixi.Text('@dontsave', linkText)
 
     text3.position.x = (CONTAINER_WIDTH - text3.width - text4.width) / 2
-    text3.position.y = CONTAINER_HEIGHT - 20
+    text3.position.y = CONTAINER_HEIGHT - 16
     this._container.addChild(text3)
 
     text4.position.x = text3.position.x + text3.width

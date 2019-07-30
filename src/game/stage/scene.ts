@@ -6,7 +6,7 @@ import Input from 'game/input'
 import * as Pixi from 'pixi.js'
 import Block, { BlockType, BLOCK_SIZE } from './block'
 import { COLOR_TABLE, SCORE_TABLE } from './constants'
-import TitleScene from 'game/title/scene'
+import SettingsScene, { StageData } from 'game/settings/scene'
 
 const GRID_SCREEN_X = 192
 const GRID_SCREEN_Y = 80
@@ -322,6 +322,10 @@ export default class StageScene extends SceneBase {
 
       if (input.isPressed('drop')) {
         this._drop()
+      }
+
+      if (input.isPressed('pause')) {
+        this._pause()
       }
     }
   }
@@ -719,7 +723,7 @@ export default class StageScene extends SceneBase {
 
   private _updateGameOver(frameTime: number): void {
     if (this._animationTime === this._gameOverAnimationDuration) {
-      this.manager.switchTo(new TitleScene(this.app, {
+      this.manager.switchTo(new SettingsScene(this.app, {
         gameOver: {
           level: this._level,
           lines: this._lines,
@@ -793,5 +797,15 @@ export default class StageScene extends SceneBase {
     const [sourceX, sourceY] = this._adjustCameraSource
     this._room.pivot.x = sourceX + (targetX - sourceX) * percent
     this._room.pivot.y = sourceY + (targetY - sourceY) * percent
+  }
+
+  private _pause(): void {
+    const stageData: StageData = {
+      level: this._level,
+      lines: this._lines,
+      score: this._score,
+      hiScore: this._hiScore,
+    }
+    this.manager.push(new SettingsScene(this.app, { pause: stageData }))
   }
 }

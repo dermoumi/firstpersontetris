@@ -31,7 +31,7 @@ export default class SceneManager {
 
     // Update all scenes until one of them returns 'false' or sceneStack changes
     this.sceneStack.some((scene): boolean => {
-      return scene.onUpdate(frameTime) === false || this.isDirty
+      return scene.onUpdate(frameTime) !== true || this.isDirty
     })
 
     return !this.isDirty
