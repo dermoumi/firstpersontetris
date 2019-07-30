@@ -20,4 +20,3 @@ pages:
       - public/
   only:
     - master
-    - setup-ci
