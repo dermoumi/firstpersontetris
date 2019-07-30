@@ -166,8 +166,8 @@ export default class SettingsScene extends SceneBase {
       pushStartText.on('pointertap', (): void => this._startGame())
     }
 
-    this._container.pivot.x = CONTAINER_WIDTH / 2
-    this._container.pivot.y = CONTAINER_HEIGHT / 2
+    this._container.pivot.x = Math.floor(CONTAINER_WIDTH / 2)
+    this._container.pivot.y = Math.floor(CONTAINER_HEIGHT / 2)
 
     this._drawCreditText()
 
@@ -189,8 +189,8 @@ export default class SettingsScene extends SceneBase {
       scale = height / minHeight
     }
 
-    this._container.position.x = width / 2
-    this._container.position.y = height / 2
+    this._container.position.x = Math.floor(width / 2)
+    this._container.position.y = Math.floor(height / 2)
 
     this._container.scale.x = scale
     this._container.scale.y = scale

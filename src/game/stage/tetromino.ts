@@ -252,8 +252,9 @@ export default class Tetromino extends Pixi.Container {
   public setAngle(angle: TetrominoAngle): void {
     this._angle = angle
 
-    this.pivot.x = CELL_SIZE * this.getSize() / 2
-    this.pivot.y = CELL_SIZE * this.getSize() / 2
+    const [centerX, centerY] = this.getCenter()
+    this.pivot.x = CELL_SIZE * centerX
+    this.pivot.y = CELL_SIZE * centerY
   }
 
   public getOffset(): number {
