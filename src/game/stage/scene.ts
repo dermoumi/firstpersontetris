@@ -21,6 +21,11 @@ export interface StageSceneUserdata {
   hiScore?: number;
 }
 
+export interface StageSettings {
+  lightsOut: boolean;
+  crisisMode: boolean;
+}
+
 enum StageState {
   Paused,
   Idle,
@@ -92,6 +97,10 @@ export default class StageScene extends SceneBase {
   private _hiScore = 10000
   private _hiScoreUi!: Pixi.Text
 
+  private _screenUi: Pixi.Sprite
+  private _roomBg: Pixi.Sprite
+  private _screenOverlay: Pixi.Sprite
+  private _screenUiValues = new Pixi.Container()
   private _screen = new Pixi.Container()
   private _room = new Pixi.Container()
 
@@ -134,14 +143,6 @@ export default class StageScene extends SceneBase {
       this._firstPersonMode = userdata.firstPerson
     }
 
-    if (userdata.lightsOut !== undefined) {
-      this._lightsOutMode = userdata.lightsOut
-    }
-
-    if (userdata.crisisMode !== undefined) {
-      this._inCrisisMode = userdata.crisisMode
-    }
-
     if (userdata.hiScore !== undefined) {
       this._hiScore = userdata.hiScore
     }
@@ -156,15 +157,17 @@ export default class StageScene extends SceneBase {
     this._completeRowsContainer.position.y = GRID_SCREEN_Y
     this._screen.addChild(this._completeRowsContainer)
 
-    const screenUi = Pixi.Sprite.from(GameApp.resources.stage.texture)
-    screenUi.zIndex = 100
-    screenUi.visible = !this._lightsOutMode
-    this._screen.addChild(screenUi)
+    this._screenUi = Pixi.Sprite.from(GameApp.resources.stage.texture)
+    this._screenUi.zIndex = 100
+    this._screen.addChild(this._screenUi)
 
     this._levelUi = this._createUiText(`0${this._level}`.substr(-2), 416, 314)
     this._linesUi = this._createUiText('000', 304, 26)
     this._scoreUi = this._createUiText('000000', 384, 106)
     this._hiScoreUi = this._createUiText(`00000${this._hiScore}`.substr(-6), 384, 58)
+
+    this._screenUiValues.zIndex = 110
+    this._screen.addChild(this._screenUiValues)
 
     const tetrominoTypes = ['T', 'Z', 'J', 'O', 'L', 'S', 'I']
     tetrominoTypes.forEach((type, i): void => {
@@ -175,7 +178,6 @@ export default class StageScene extends SceneBase {
     this._statsPiecesUi.position.x = 48
     this._statsPiecesUi.position.y = 160
     this._statsPiecesUi.zIndex = 110
-    this._statsPiecesUi.visible = !this._lightsOutMode
     this._screen.addChild(this._statsPiecesUi)
 
     this._gameOverCurtain.position.x = GRID_SCREEN_X
@@ -183,11 +185,8 @@ export default class StageScene extends SceneBase {
     this._gameOverCurtain.zIndex = 120
     this._screen.addChild(this._gameOverCurtain)
 
-    this._nextTetromino = this._getNextTetromino()
-    this._currentTetromino = this._spawnTetromino()
-
-    const roomSprite = Pixi.Sprite.from(GameApp.resources.room.texture)
-    this._room.addChild(roomSprite)
+    this._roomBg = Pixi.Sprite.from(GameApp.resources.room.texture)
+    this._room.addChild(this._roomBg)
 
     this._screen.position.x = 740
     this._screen.position.y = 768
@@ -195,15 +194,30 @@ export default class StageScene extends SceneBase {
     this._screen.scale.y = 372 / GameApp.resources.stage.texture.height
     this._room.addChild(this._screen)
 
-    const screenOverlay = Pixi.Sprite.from(GameApp.resources.screen.texture)
-    screenOverlay.position.x = 733
-    screenOverlay.position.y = 761
-    this._room.addChild(screenOverlay)
+    this._screenOverlay = Pixi.Sprite.from(GameApp.resources.screen.texture)
+    this._screenOverlay.position.x = 733
+    this._screenOverlay.position.y = 761
+    this._room.addChild(this._screenOverlay)
 
     this._room.pivot.x = GameApp.resources.room.texture.width / 2
     this._room.pivot.y = GameApp.resources.room.texture.height / 2
+    this._room.scale.x = 1.25
+    this._room.scale.y = 1.25
 
     this.stage.addChild(this._room)
+
+    this._nextTetromino = this._getNextTetromino()
+    this._currentTetromino = this._spawnTetromino()
+
+    if (userdata.lightsOut !== undefined) {
+      this._lightsOutMode = userdata.lightsOut
+      this._updateLightsOutMode()
+    }
+
+    if (userdata.crisisMode !== undefined) {
+      this._inCrisisMode = userdata.crisisMode
+      this._updateCrisisMode()
+    }
 
     this._updateColors()
     this._updateScreenPos()
@@ -253,12 +267,27 @@ export default class StageScene extends SceneBase {
     uiText.position.y = posY
     uiText.scale.x = 0.25
     uiText.scale.y = 0.25
-    uiText.zIndex = 110
     uiText.resolution = 2
     uiText.roundPixels = true
     uiText.visible = !this._lightsOutMode
-    this._screen.addChild(uiText)
+    this._screenUiValues.addChild(uiText)
     return uiText
+  }
+
+  public onEnter(userdata?: StageSettings): void {
+    super.onEnter(userdata)
+
+    if (userdata !== undefined) {
+      if (this._lightsOutMode !== userdata.lightsOut) {
+        this._lightsOutMode = userdata.lightsOut
+        this._updateLightsOutMode()
+      }
+
+      if (this._inCrisisMode !== userdata.crisisMode) {
+        this._inCrisisMode = userdata.crisisMode
+        this._updateCrisisMode()
+      }
+    }
   }
 
   public onUpdate(frameTime: number): void {
@@ -337,13 +366,10 @@ export default class StageScene extends SceneBase {
     const [color1, color2] = this._getColors()
     tetromino.setColors(color1, color2)
 
-    if (this._lightsOutMode) {
-      tetromino.visible = false
-    } else {
-      const [centerX, centerY] = tetromino.getCenter()
-      tetromino.setX(NEXT_SCREEN_X + CELL_SIZE * (2 - centerX))
-      tetromino.setY(NEXT_SCREEN_Y + CELL_SIZE * (2 - centerY))
-    }
+    const [centerX, centerY] = tetromino.getCenter()
+    tetromino.setX(NEXT_SCREEN_X + CELL_SIZE * (2 - centerX))
+    tetromino.setY(NEXT_SCREEN_Y + CELL_SIZE * (2 - centerY))
+    tetromino.visible = !this._lightsOutMode
 
     this._screen.addChild(tetromino)
     return tetromino
@@ -814,5 +840,19 @@ export default class StageScene extends SceneBase {
       hiScore: this._hiScore,
     }
     this.manager.push(new SettingsScene(this.app, { pause: stageData }))
+  }
+
+  private _updateLightsOutMode(): void {
+    const visible = !this._lightsOutMode
+    this._screenUi.visible = visible
+    this._screenUiValues.visible = visible
+    this._screenOverlay.visible = visible
+    this._roomBg.visible = visible
+    this._nextTetromino.visible = visible
+    this._statsPiecesUi.visible = visible
+  }
+
+  private _updateCrisisMode(): void {
+
   }
 }

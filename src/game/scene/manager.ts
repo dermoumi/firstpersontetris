@@ -7,6 +7,9 @@ export default class SceneManager {
   private app: GameApp
   private isDirty = false // True whene scene stack changes during an update
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private popUserdata?: Record<string, any>
+
   public constructor(app: GameApp) {
     this.app = app
   }
@@ -17,7 +20,8 @@ export default class SceneManager {
       if (this.currentScene) this.currentScene.onLeave()
 
       this.currentScene = this.sceneStack[0]
-      this.currentScene.onEnter()
+      this.currentScene.onEnter(this.popUserdata)
+      this.popUserdata = undefined
     }
 
     // Reset the dirty flag
@@ -72,9 +76,13 @@ export default class SceneManager {
     return this.clear().push(newScene)
   }
 
-  public pop(): SceneManager {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  public pop(userdata?: Record<string, any>): SceneManager {
     // Don't do anything if there's no scene
     if (this.sceneStack.length === 0) return this
+
+    // Store pop userdata to be passed on the next onEnter()
+    this.popUserdata = userdata
 
     // Call onLeave if the current scene is the last scene
     if (this.currentScene == this.sceneStack[0]) {

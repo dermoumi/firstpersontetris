@@ -16,7 +16,8 @@ export default class SceneBase {
     app.stage.addChild(this.stage)
   }
 
-  public onEnter(): void {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any
+  public onEnter(_userdata?: Record<string, any>): void {
     console.debug(`${this.constructor.name}: onEnter()`)
     this._setStageVisible(true)
   }

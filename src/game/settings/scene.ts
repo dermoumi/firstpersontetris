@@ -350,7 +350,10 @@ export default class SettingsScene extends SceneBase {
   }
 
   private _resumeGame(): void {
-    this.manager.pop()
+    this.manager.pop({
+      lightsOut: this._lightsOut,
+      crisisMode: this._inCrisis,
+    })
     this.app.sound.playSfx('pause')
   }
 
