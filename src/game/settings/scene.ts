@@ -54,7 +54,7 @@ export default class SettingsScene extends SceneBase {
       this._hiScore = userdata.gameOver.hiScore
       this._saveSettings()
       this._drawStageData(userdata.gameOver)
-    } else if (userdata.pause) {
+    } else if (userdata.pause !== undefined) {
       titleString = "PAUSED"
       this._isPaused = true
       this.app.sound.playSfx('pause')
@@ -171,7 +171,9 @@ export default class SettingsScene extends SceneBase {
 
     this._drawCreditText()
 
-    this._playMusic()
+    if (userdata.pause === undefined) {
+      this._playMusic()
+    }
   }
 
   public onResize(width: number, height: number): void {
