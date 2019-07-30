@@ -1,0 +1,23 @@
+image: node:latest
+
+stages:
+  - staging
+
+pages:
+  stage: staging
+  script:
+    - npm install -g yarn
+    - yarn install
+    - yarn lint
+    - yarn build
+    - mv dist/ public/
+  cache:
+    key: node_modules
+    paths:
+      - node_modules/
+  artifacts:
+    paths:
+      - public/
+  only:
+    - master
+    - setup-ci
