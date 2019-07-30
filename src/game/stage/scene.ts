@@ -673,9 +673,9 @@ export default class StageScene extends SceneBase {
     }
 
     const percent = this._animationTime / this._dropAnimationDuration
-    const distance = (this._dropTargetY - this._playerY) * CELL_SIZE
+    const distance = GRID_SCREEN_Y + this._dropTargetY * CELL_SIZE - this._dropStartPos
 
-    this._currentTetromino.setY(this._dropStartPos + distance * (percent * percent))
+    this._currentTetromino.setY(this._dropStartPos + distance * percent * percent)
     this._updateScreenPos()
   }
 
@@ -756,7 +756,5 @@ export default class StageScene extends SceneBase {
     const angle = tetromino.getAngle() as number
     const lastAngle = this._lastTetrominoAngle as number
     this._room.angle = - lastAngle * 90 - angle * 90 - tetromino.angle
-
-    console.debug(angle, lastAngle, this._room.angle)
   }
 }
