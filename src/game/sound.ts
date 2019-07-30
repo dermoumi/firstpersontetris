@@ -43,6 +43,8 @@ export default class Sound {
 
   public playSfx(name: string): void {
     if (!this._sfxEnabled) return
-    GameApp.resources[`sfx_${name}`].sound.play()
+    setTimeout((): void => {
+      GameApp.resources[`sfx_${name}`].sound.play()
+    })
   }
 }
