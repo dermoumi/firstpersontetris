@@ -5,7 +5,7 @@ import StageGrid, { WIDTH as GRID_WIDTH, HEIGHT as GRID_HEIGHT, CELL_SIZE, Compl
 import Input from 'game/input'
 import * as Pixi from 'pixi.js'
 import Block, { BlockType, BLOCK_SIZE } from './block'
-import { COLOR_TABLE, SCORE_TABLE } from './constants'
+import { COLOR_TABLE, SCORE_TABLE, STEP_TIME_TABLE } from './constants'
 import SettingsScene, { StageData } from 'game/settings/scene'
 
 const GRID_SCREEN_X = 192
@@ -127,6 +127,7 @@ export default class StageScene extends SceneBase {
 
     if (userdata.level !== undefined) {
       this._level = this._startingLevel = userdata.level
+      this._updateStepDuration()
     }
 
     if (userdata.firstPerson !== undefined) {
@@ -634,8 +635,14 @@ export default class StageScene extends SceneBase {
     this._level = level
     this._levelUi.text = `0${level}`.substr(-2)
 
+    this._updateStepDuration()
+
     this._updateColors()
     this.app.sound.playSfx('level')
+  }
+
+  private _updateStepDuration(): void {
+    this._stepDuration = STEP_TIME_TABLE[this._level] || .017
   }
 
   private _increaseStatistics(type: string): void {
