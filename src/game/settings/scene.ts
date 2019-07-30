@@ -172,7 +172,12 @@ export default class SettingsScene extends SceneBase {
     this._drawCreditText()
 
     if (userdata.pause === undefined) {
-      this._playMusic()
+      if (this._inCrisis) {
+        this.app.sound.setMusic('assets/music/crisis.mp3', 'assets/music/crisis.mp3')
+        this.app.sound.playSlowMusic()
+      } else {
+        this._playMusic()
+      }
     }
   }
 
