@@ -53,6 +53,8 @@ module.exports = (env, argv) => {
           '!assets/**/*',
           '!index.html',
           '!manifest.json',
+          '!browserconfig.xml',
+          '!favicon.ico',
         ],
       }),
       new webpack.HashedModuleIdsPlugin(),
