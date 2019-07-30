@@ -111,30 +111,68 @@ export default class StageScene extends SceneBase {
   private _screen = new Pixi.Container()
   private _room = new Pixi.Container()
 
-  private MOVE_DIR = {
+  private _leftHeld = false
+  private _rightHeld = false
+  private _downHeld = false
+  private _xHoldTimer = 0
+  private _yHoldTimer = 0
+  private _holdMinDuration = 0.18
+  private _holdRepeatInterval = 0.06
+
+  private _dropStartY = -1
+  private _yHoldStart = -1
+
+  private PRESS_DIR: Record<string, Function[]> = {
     left: [
-      this._moveLeft.bind(this),
+      this._pressLeft.bind(this),
       (): void => {},
-      this._moveRight.bind(this),
-      this._moveDown.bind(this),
+      this._pressRight.bind(this),
+      this._pressDown.bind(this),
     ],
     right: [
-      this._moveRight.bind(this),
-      this._moveDown.bind(this),
-      this._moveLeft.bind(this),
+      this._pressRight.bind(this),
+      this._pressDown.bind(this),
+      this._pressLeft.bind(this),
       (): void => {},
     ],
     down: [
-      this._moveDown.bind(this),
-      this._moveLeft.bind(this),
+      this._pressDown.bind(this),
+      this._pressLeft.bind(this),
       (): void => {},
-      this._moveRight.bind(this),
+      this._pressRight.bind(this),
     ],
     up: [
       (): void => {},
-      this._moveRight.bind(this),
-      this._moveDown.bind(this),
-      this._moveLeft.bind(this),
+      this._pressRight.bind(this),
+      this._pressDown.bind(this),
+      this._pressLeft.bind(this),
+    ],
+  }
+
+  private RELEASE_DIR: Record<string, Function[]> = {
+    left: [
+      this._releaseLeft.bind(this),
+      (): void => {},
+      this._releaseRight.bind(this),
+      this._releaseDown.bind(this),
+    ],
+    right: [
+      this._releaseRight.bind(this),
+      this._releaseDown.bind(this),
+      this._releaseLeft.bind(this),
+      (): void => {},
+    ],
+    down: [
+      this._releaseDown.bind(this),
+      this._releaseLeft.bind(this),
+      (): void => {},
+      this._releaseRight.bind(this),
+    ],
+    up: [
+      (): void => {},
+      this._releaseRight.bind(this),
+      this._releaseDown.bind(this),
+      this._releaseLeft.bind(this),
     ],
   }
 
@@ -343,44 +381,127 @@ export default class StageScene extends SceneBase {
     this._updateFlicker(frameTime)
   }
 
-  public onProcessInput(input: Input): void {
-    if (this._state === StageState.Idle) {
-      const angle = (this._lastTetrominoAngle + this._currentTetromino.getAngle()) % 4
+  public onProcessInput(input: Input, frameTime: number): void {
+    const directions = ['left', 'right', 'down', 'up']
+    const angle = this._effectiveAngle()
 
-      if (input.isPressed('left', true)) {
-        if (this._firstPersonMode) {
-          this.MOVE_DIR['left'][angle]()
-        } else {
-          this._moveLeft()
-        }
-      } else if (input.isPressed('right', true)) {
-        if (this._firstPersonMode) {
-          this.MOVE_DIR['right'][angle]()
-        } else {
-          this._moveRight()
-        }
-      } else if (input.isPressed('down', true)) {
-        if (this._firstPersonMode) {
-          this.MOVE_DIR['down'][angle]()
-        } else {
-          this._moveDown()
-        }
-      } else if (input.isPressed('up', true)) {
-        if (this._firstPersonMode) this.MOVE_DIR['up'][angle]()
+    directions.forEach((direction): void => {
+      if (input.isReleased(direction)) {
+        this._releaseAction(direction, angle)
       }
+    })
+
+    if (this._state === StageState.Idle) {
+      directions.forEach((direction): void => {
+        if (input.isPressed(direction)) {
+          this._pressAction(direction, angle)
+        }
+      })
 
       if (input.isPressed('rotate', true)) {
         this._rotate()
       }
 
       if (input.isPressed('drop')) {
-        this._drop()
+        this._hardDrop()
       }
 
       if (input.isPressed('pause')) {
         this._pause()
       }
+
+      if (this._leftHeld || this._rightHeld) {
+        this._xHoldTimer += frameTime
+        if (this._xHoldTimer > this._holdRepeatInterval + this._holdMinDuration) {
+          const extraTime = this._xHoldTimer - this._holdMinDuration
+          this._xHoldTimer = this._holdMinDuration + (extraTime % this._holdRepeatInterval)
+
+          if (this._leftHeld) {
+            this._moveLeft()
+          } else {
+            this._moveRight()
+          }
+        }
+      }
+
+      if (this._downHeld) {
+        this._yHoldTimer += frameTime
+        if (this._yHoldTimer > this._holdRepeatInterval + this._holdMinDuration) {
+          const extraTime = this._yHoldTimer - this._holdMinDuration
+          this._yHoldTimer = this._holdMinDuration + (extraTime % this._holdRepeatInterval)
+
+          if (this._yHoldStart === -1) {
+            this._yHoldStart = this._playerY
+          }
+
+          this._moveDown()
+        }
+      }
     }
+
+    super.onProcessInput(input, frameTime)
+  }
+
+  private _effectiveAngle(): TetrominoAngle {
+    return (this._lastTetrominoAngle + this._currentTetromino.getAngle()) % 4
+  }
+
+  private _pressAction(direction: string, angle = this._effectiveAngle()): void {
+    if (this._firstPersonMode) {
+      this.PRESS_DIR[direction][angle]()
+    } else if (direction === 'left') {
+      this._pressLeft()
+    } else if (direction === 'right') {
+      this._pressRight()
+    } else if (direction === 'down') {
+      this._pressDown()
+    }
+  }
+
+  private _releaseAction(direction: string, angle = this._effectiveAngle()): void {
+    if (this._firstPersonMode) {
+      this.RELEASE_DIR[direction][angle]()
+    } else if (direction === 'left') {
+      this._releaseLeft()
+    } else if (direction === 'right') {
+      this._releaseRight()
+    } else if (direction === 'down') {
+      this._releaseDown()
+    }
+  }
+
+  private _pressLeft(): void {
+    this._moveLeft()
+
+    this._leftHeld = true
+    this._xHoldTimer = 0
+  }
+
+  private _releaseLeft(): void {
+    this._leftHeld = false
+  }
+
+  private _pressRight(): void {
+    this._moveRight()
+
+    this._rightHeld = true
+    this._xHoldTimer = 0
+  }
+
+  private _releaseRight(): void {
+    this._rightHeld = false
+  }
+
+  private _pressDown(): void {
+    this._moveDown()
+
+    this._downHeld = true
+    this._yHoldTimer = 0
+  }
+
+  private _releaseDown(): void {
+    this._downHeld = false
+    this._yHoldStart = -1
   }
 
   private _getNextTetromino(): Tetromino {
@@ -435,7 +556,10 @@ export default class StageScene extends SceneBase {
     this._stepTime += frameTime
     if (this._stepTime > this._stepDuration) {
       this._stepTime = this._stepTime % this._stepDuration
-      this._performStep()
+
+      if (!this._downHeld) {
+        this._performStep()
+      }
     }
   }
 
@@ -583,7 +707,8 @@ export default class StageScene extends SceneBase {
     }
   }
 
-  private _drop(): void {
+  private _hardDrop(): void {
+    this._dropStartY = Math.max(0, this._playerY)
     this._dropTargetY = this._playerY
     while (!this._grid.collidesWith(this._currentTetromino, this._playerX, this._dropTargetY + 1)) {
       this._dropTargetY++
@@ -607,6 +732,8 @@ export default class StageScene extends SceneBase {
     if (completeRows.length > 0) {
       this._initRowsAnimation(completeRows)
     } else {
+      this._increaseDropScore()
+
       this.app.sound.playSfx('united')
       this._currentTetromino = this._spawnTetromino()
       this._updateScreenPos(true)
@@ -641,7 +768,9 @@ export default class StageScene extends SceneBase {
 
   private _initRowsAnimation(completeRows: CompleteRow[]): void {
     this._completeRows = completeRows
-    this._increaseLineCount(completeRows.length, true, false)
+    this._increaseLineCount(completeRows.length)
+    this._increaseLineScore(completeRows.length)
+    this._increaseDropScore()
 
     // Play row completed sound
     if (completeRows.length < 4) {
@@ -699,29 +828,16 @@ export default class StageScene extends SceneBase {
     this._statisticsUi[type].text = `00${count}`.substr(-3)
   }
 
-  private _increaseLineCount(count = 1, increaseScore = true, increaseLevel = true): void {
+  private _increaseLineCount(count = 1): void {
     this._lines += count
     this._linesUi.text = `00${this._lines}`.substr(-3)
-
-    if (increaseScore) {
-      this._increaseScore(count)
-    }
-
-    if (increaseLevel) {
-      this._updateLevel()
-    }
   }
 
-  private _increaseScore(lineCount = 1): void {
+  private _increaseLineScore(lineCount = 1): void {
     const score = SCORE_TABLE[Math.min(lineCount - 1, 3)] * (this._level + 1)
 
     this._score += score
-    this._scoreUi.text = `00000${this._score}`.substr(-6)
-
-    if (this._score > this._hiScore) {
-      this._hiScore = this._score
-      this._hiScoreUi.text = this._scoreUi.text
-    }
+    this._updateScore()
   }
 
   private _updateLevel(): void {
@@ -922,5 +1038,33 @@ export default class StageScene extends SceneBase {
     const percent =  (this._scanLinesTime % this._scanDuration) / this._scanDuration
 
     this._scanLines.position.y = -177 + 582 * percent
+  }
+
+  private _increaseDropScore(currentY = this._playerY): void {
+    const factor = this._level + 1
+
+    let dropScore = 0
+    if (this._dropStartY !== -1) {
+      dropScore = (currentY - this._dropStartY) * factor
+    } else if (this._yHoldStart !== -1) {
+      dropScore = (currentY - this._yHoldStart) * factor
+    }
+
+    if (dropScore > 0) {
+      this._score += dropScore
+      this._updateScore()
+    }
+
+    this._dropStartY = -1
+    this._yHoldStart = -1
+  }
+
+  private _updateScore(): void {
+    this._scoreUi.text = `00000${this._score}`.substr(-6)
+
+    if (this._score > this._hiScore) {
+      this._hiScore = this._score
+      this._hiScoreUi.text = this._scoreUi.text
+    }
   }
 }
