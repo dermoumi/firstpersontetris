@@ -1,15 +1,19 @@
-import * as Pixi from 'pixi.js'
-import sound from 'pixi-sound'
+import 'pixi-sound'
 import GameApp from './app'
 
 export default class Sound {
-  private _music?: sound.Sound
-  private _musicFast?: sound.Sound
+  private _music?: HTMLAudioElement
+  private _musicFast?: HTMLAudioElement
   private _sfxEnabled = true
 
-  public setMusic(urlSlow: string, urlFast: string, options: Pixi.sound.Options = {}): void {
-    this._music = sound.Sound.from({ ...options, url: urlSlow })
-    this._musicFast = sound.Sound.from({ ...options, url: urlFast })
+  public setMusic(urlSlow: string, urlFast: string): void {
+    this._music = new Audio(urlSlow)
+    this._music.loop = true
+    this._music.volume = 0.5
+
+    this._musicFast = new Audio(urlFast)
+    this._musicFast.loop = true
+    this._musicFast.volume = 0.5
   }
 
   public playSlowMusic(): void {
@@ -23,8 +27,8 @@ export default class Sound {
   }
 
   public stopMusic(): void {
-    this._music && this._music.stop()
-    this._musicFast && this._musicFast.stop()
+    this._music && this._music.pause()
+    this._musicFast && this._musicFast.pause()
   }
 
   public setSfxEnabled(enabled: boolean): void {
