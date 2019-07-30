@@ -61,6 +61,7 @@ export default class StageScene extends SceneBase {
   private _gameOverAnimationDuration = 2.4
   private _gameOverCurtain = new Pixi.Graphics()
   private _curtainTexture!: Pixi.RenderTexture
+  private _unrotateDuration = this._gameOverAnimationDuration / 3
 
   private _cameraAdjustTime = 0.2
   private _adjustCameraTarget: [number, number] = [0, 0]
@@ -121,6 +122,10 @@ export default class StageScene extends SceneBase {
 
   private _dropStartY = -1
   private _yHoldStart = -1
+
+  private _gameOverInitRotation = 0
+  private _gameOverInitPivotX = 0
+  private _gameOverInitPivotY = 0
 
   private PRESS_DIR: Record<string, Function[]> = {
     left: [
@@ -891,6 +896,10 @@ export default class StageScene extends SceneBase {
     curtainBlock.drawRect(0, 10, 16, 4)
 
     this.app.pixi.renderer.render(curtainBlock, this._curtainTexture)
+
+    this._gameOverInitRotation = this._room.angle
+    this._gameOverInitPivotX = this._room.pivot.x
+    this._gameOverInitPivotY = this._room.pivot.y
   }
 
   private _updateGameOver(frameTime: number): void {
@@ -915,6 +924,20 @@ export default class StageScene extends SceneBase {
     curtain.clear()
     curtain.beginTextureFill(this._curtainTexture)
     curtain.drawRect(0, 0, GRID_WIDTH * CELL_SIZE, GRID_HEIGHT * CELL_SIZE * percent)
+
+    // Center the screen and unrotate to 0deg
+    const unrotatePercent = Math.min(this._animationTime, this._unrotateDuration) / this._unrotateDuration
+    const unrotatePercent1 = 1 - unrotatePercent
+
+    let initRotation = this._gameOverInitRotation
+    if (initRotation > 180) initRotation -= 360
+    if (initRotation < -180) initRotation += 360
+    this._room.angle = initRotation * unrotatePercent1
+
+    this._room.pivot.x = this._gameOverInitPivotX * unrotatePercent1
+      + ((this._room.width / 2) / this._room.scale.x) * unrotatePercent
+    this._room.pivot.y = this._gameOverInitPivotY * unrotatePercent1
+      + ((this._room.height / 2) / this._room.scale.y) * unrotatePercent
   }
 
   public onResize(width: number, height: number): void {
