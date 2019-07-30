@@ -19,8 +19,10 @@ export default class Sound {
   }
 
   public playSlowMusic(): void {
-    if (!this._music) return
-    this._music.play()
+    setTimeout((): void => {
+      if (!this._music) return
+      this._music.play()
+    })
   }
 
   public playFastMusic(): void {
