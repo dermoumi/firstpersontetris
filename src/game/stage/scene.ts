@@ -1174,6 +1174,7 @@ export default class StageScene extends SceneBase {
   }
 
   private _setupTouchControls(): void {
+    // Pause button
     const pauseBtn = Pixi.Sprite.from(GameApp.resources.pause.texture)
     pauseBtn.position.x = 16
     pauseBtn.position.y = 16

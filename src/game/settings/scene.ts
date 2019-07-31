@@ -159,18 +159,20 @@ export default class SettingsScene extends SceneBase {
       const resumeText = new Pixi.Text('RESUME', buttonStyle)
       resumeText.position.x = Math.floor((CONTAINER_WIDTH - resumeText.width) / 2)
       resumeText.position.y = 376
-      this._container.addChild(resumeText)
       resumeText.interactive = true
       resumeText.buttonMode = true
-      resumeText.on('pointertap', (): void => this._resumeGame())
+      resumeText.on('tap', this._resumeGame.bind(this, true))
+      resumeText.on('click', this._resumeGame.bind(this, false))
+      this._container.addChild(resumeText)
     } else {
       const pushStartText = new Pixi.Text('PUSH START', buttonStyle)
       pushStartText.position.x = Math.floor((CONTAINER_WIDTH - pushStartText.width) / 2)
       pushStartText.position.y = 376
-      this._container.addChild(pushStartText)
       pushStartText.interactive = true
       pushStartText.buttonMode = true
-      pushStartText.on('pointertap', (): void => this._startGame())
+      pushStartText.on('tap', this._startGame.bind(this, true))
+      pushStartText.on('click', this._startGame.bind(this, false))
+      this._container.addChild(pushStartText)
     }
 
     this._container.pivot.x = Math.floor(CONTAINER_WIDTH / 2)
@@ -382,12 +384,16 @@ export default class SettingsScene extends SceneBase {
     }
   }
 
-  private _startGame(): void {
+  private _startGame(touch = false): void {
+    if (touch) {
+      document.body.requestFullscreen()
+    }
+
     this.manager.switchTo(new SceneStage(this.app, {
       hiScore: this._hiScore,
       lightsOut: this._lightsOut,
       crisisMode: this._inCrisis,
-      touchControls: true,
+      touchControls: touch,
     }))
 
     this.app.sound.playSfx('beep')
@@ -397,10 +403,15 @@ export default class SettingsScene extends SceneBase {
     }
   }
 
-  private _resumeGame(): void {
+  private _resumeGame(touch = false): void {
+    if (touch) {
+      document.body.requestFullscreen()
+    }
+
     this.manager.pop({
       lightsOut: this._lightsOut,
       crisisMode: this._inCrisis,
+      touchControls: touch,
     })
     this.app.sound.playSfx('pause')
   }
