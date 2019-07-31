@@ -7,7 +7,7 @@
   "scripts": {
     "build": "webpack",
     "start": "http-server -c2592000 dist",
-    "dev": "webpack-dev-server --open --mode development",
+    "dev": "webpack-dev-server --open --mode development --host 0.0.0.0",
     "lint": "eslint 'src/**/*'"
   },
   "devDependencies": {
