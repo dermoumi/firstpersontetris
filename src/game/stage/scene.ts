@@ -919,6 +919,7 @@ export default class StageScene extends SceneBase {
           lines: this._lines,
           score: this._score,
           hiScore: this._hiScore,
+          panic: this._panic,
         },
       }))
     }
