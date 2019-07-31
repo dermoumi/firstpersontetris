@@ -18,6 +18,7 @@ export interface StageData {
   lines: number;
   score: number;
   hiScore: number;
+  panic: boolean;
 }
 
 export interface TitleUserdata {
@@ -42,6 +43,7 @@ export default class SettingsScene extends SceneBase {
   private _inCrisis = false
   private _hiScore = 10000
   private _isPaused = false
+  private _panicMode = false
 
   public constructor(app: GameApp, userdata: TitleUserdata = {}) {
     super(app)
@@ -52,6 +54,7 @@ export default class SettingsScene extends SceneBase {
     if (userdata.pause !== undefined) {
       titleString = "PAUSED"
       this._isPaused = true
+      this._panicMode = userdata.pause.panic
       this.app.sound.playSfx('pause')
       this._drawStageData(userdata.pause)
     } else {
@@ -371,7 +374,12 @@ export default class SettingsScene extends SceneBase {
 
     const [ music, musicFast ] = MUSIC_TRACKS[index]
     sound.setMusic(music, musicFast)
-    sound.playSlowMusic()
+
+    if (this._isPaused && this._panicMode) {
+      sound.playFastMusic()
+    } else {
+      sound.playSlowMusic()
+    }
   }
 
   private _startGame(): void {
