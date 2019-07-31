@@ -15,6 +15,7 @@ export interface CompleteRow {
 export default class StageGrid extends Pixi.Container {
   private _data: number[][]
   private _colors!: [number, number]
+  private _panic = false
 
   public constructor() {
     super()
@@ -31,11 +32,17 @@ export default class StageGrid extends Pixi.Container {
 
   public update(): void {
     this.removeChildren()
+    this._panic = false
 
     this._data.forEach((row: number[], y: number): void => {
       row.forEach((colorIndex: number, x: number): void => {
         // Don't do anything if cell is empty
         if (colorIndex === 0) return
+
+        // If there's a block at Y < 5, it's panic mode
+        if (y < 5) {
+          this._panic = true
+        }
 
         // Make a block graphic
         const color = this._colors[(colorIndex - 1) % 2]
@@ -109,5 +116,9 @@ export default class StageGrid extends Pixi.Container {
     }
 
     this._data[0] = new Array(WIDTH).fill(0)
+  }
+
+  public shouldPanic(): boolean {
+    return this._panic
   }
 }

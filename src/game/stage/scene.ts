@@ -127,6 +127,8 @@ export default class StageScene extends SceneBase {
   private _gameOverInitPivotX = 0
   private _gameOverInitPivotY = 0
 
+  private _panic = false
+
   private PRESS_DIR: Record<string, Function[]> = {
     left: [
       this._pressLeft.bind(this),
@@ -598,13 +600,11 @@ export default class StageScene extends SceneBase {
       })
       this._grid.update()
 
+      // Post-Unite routine
+      this._postUnite()
+
       // Empty the complete rows container to avoid unecessary invisible renders
       this._completeRowsContainer.removeChildren()
-
-      // Spawn new tetromino now that the animation has ended
-      this._currentTetromino = this._spawnTetromino()
-      this._updateScreenPos(true)
-      this._updateScreenRotation()
       return
     }
 
@@ -740,9 +740,7 @@ export default class StageScene extends SceneBase {
       this._increaseDropScore()
 
       this.app.sound.playSfx('united')
-      this._currentTetromino = this._spawnTetromino()
-      this._updateScreenPos(true)
-      this._updateScreenRotation()
+      this._postUnite()
     }
   }
 
@@ -921,6 +919,7 @@ export default class StageScene extends SceneBase {
           lines: this._lines,
           score: this._score,
           hiScore: this._hiScore,
+          panic: this._panic,
         },
       }))
     }
@@ -1044,6 +1043,7 @@ export default class StageScene extends SceneBase {
       lines: this._lines,
       score: this._score,
       hiScore: this._hiScore,
+      panic: this._panic,
     }
     this.manager.push(new SettingsScene(this.app, { pause: stageData }))
   }
@@ -1099,6 +1099,27 @@ export default class StageScene extends SceneBase {
     if (this._score > this._hiScore) {
       this._hiScore = this._score
       this._hiScoreUi.text = this._scoreUi.text
+    }
+  }
+
+  private _postUnite(): void {
+    // Spawn new tetromino
+    this._currentTetromino = this._spawnTetromino()
+    this._updateScreenPos(true)
+    this._updateScreenRotation()
+
+    // Should panic
+    if (this._panic !== this._grid.shouldPanic()) {
+      this._panic = this._grid.shouldPanic()
+
+      if (!this._inCrisisMode) {
+        this.app.sound.stopMusic()
+        if (this._panic) {
+          this.app.sound.playFastMusic()
+        } else {
+          this.app.sound.playSlowMusic()
+        }
+      }
     }
   }
 }
