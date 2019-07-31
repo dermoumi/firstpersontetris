@@ -769,6 +769,17 @@ export default class StageScene extends SceneBase {
     } else {
       this._updateScreenRotation()
     }
+
+    // Reset keys hold state when rotating in first-person mode
+    // Wouldn't register them as released when the new angle is on
+    if (this._firstPersonMode) {
+      this._leftHeld = false
+      this._rightHeld = false
+      this._downHeld = false
+
+      // Sorry to all the hardcore people counting on maximizing score ¯\_(ツ)_/¯
+      this._yHoldStart = -1
+    }
   }
 
   private _initRowsAnimation(completeRows: CompleteRow[]): void {
