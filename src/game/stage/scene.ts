@@ -1174,6 +1174,16 @@ export default class StageScene extends SceneBase {
   }
 
   private _setupTouchControls(): void {
+    const pauseBtn = Pixi.Sprite.from(GameApp.resources.pause.texture)
+    pauseBtn.position.x = 16
+    pauseBtn.position.y = 16
+    pauseBtn.interactive = true
+    pauseBtn.on('touchstart', (): void => {
+      this._pause()
+    })
+    this.stage.addChild(pauseBtn)
+
+    // Gamepad illustration
     const controllerTexture = GameApp.resources.controller.texture
     this._touchController = Pixi.Sprite.from(GameApp.resources.controller.texture)
     this._touchController.pivot.x = controllerTexture.width / 2
