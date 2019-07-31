@@ -387,6 +387,7 @@ export default class SettingsScene extends SceneBase {
       hiScore: this._hiScore,
       lightsOut: this._lightsOut,
       crisisMode: this._inCrisis,
+      touchControls: true,
     }))
 
     this.app.sound.playSfx('beep')
