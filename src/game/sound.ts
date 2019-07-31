@@ -22,7 +22,7 @@ export default class Sound {
     if (!this._music) return
     const promise = this._music.play()
     if (promise !== null) {
-      promise.catch((): void => { this._music && this._music.play() })
+      promise.catch((): void => {})
     }
   }
 
@@ -47,5 +47,17 @@ export default class Sound {
   public playSfx(name: string): void {
     if (!this._sfxEnabled) return
     GameApp.resources[`sfx_${name}`].sound.play()
+  }
+
+  public isMusicPlaying(): boolean {
+    if (this._music && !this._music.paused) {
+      return true
+    }
+
+    if (this._musicFast && !this._musicFast.paused) {
+      return true
+    }
+
+    return false
   }
 }
