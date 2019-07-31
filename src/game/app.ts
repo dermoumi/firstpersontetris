@@ -82,6 +82,17 @@ export default class GameApp {
         .add('room', 'assets/images/room.jpg')
         .add('screen', 'assets/images/screen.png')
         .add('checkbox', 'assets/images/checkbox.gif')
+
+        .add('controller', 'assets/images/controller.png')
+        .add('btnDown', 'assets/images/btn-down.png')
+        .add('btnUp', 'assets/images/btn-up.png')
+        .add('dpad', 'assets/images/dpad.png')
+        .add('dpadUp', 'assets/images/dpad-up.png')
+        .add('dpadDown', 'assets/images/dpad-down.png')
+        .add('dpadLeft', 'assets/images/dpad-left.png')
+        .add('dpadRight', 'assets/images/dpad-right.png')
+        .add('pause', 'assets/images/pause.gif')
+
         .add('sfx_level', 'assets/sounds/level.mp3')
         .add('sfx_line', 'assets/sounds/line.mp3')
         .add('sfx_over', 'assets/sounds/over.mp3')
@@ -104,6 +115,7 @@ export default class GameApp {
         resources.escape.texture.baseTexture.scaleMode = Pixi.SCALE_MODES.NEAREST
         resources.space.texture.baseTexture.scaleMode = Pixi.SCALE_MODES.NEAREST
         resources.checkbox.texture.baseTexture.scaleMode = Pixi.SCALE_MODES.NEAREST
+        resources.pause.texture.baseTexture.scaleMode = Pixi.SCALE_MODES.NEAREST
       })
     })
   }

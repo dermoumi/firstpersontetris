@@ -19,11 +19,13 @@ export interface StageSceneUserdata {
   lightsOut?: boolean;
   crisisMode?: boolean;
   hiScore?: number;
+  touchControls?: boolean;
 }
 
 export interface StageSettings {
   lightsOut: boolean;
   crisisMode: boolean;
+  touchControls: boolean;
 }
 
 enum StageState {
@@ -128,6 +130,13 @@ export default class StageScene extends SceneBase {
   private _gameOverInitPivotY = 0
 
   private _panic = false
+
+  private _touchControls = false
+  private _touchContainer = new Pixi.Container()
+  private _touchController!: Pixi.Sprite
+  private _touchDpad = new Pixi.Container()
+  private _touchButtons = new Pixi.Container()
+  private _touchPause!: Pixi.Sprite
 
   private PRESS_DIR: Record<string, Function[]> = {
     left: [
@@ -285,6 +294,11 @@ export default class StageScene extends SceneBase {
       this._updateCrisisMode()
     }
 
+    if (userdata.touchControls === true) {
+      this._touchControls = true
+      this._setupTouchControls()
+    }
+
     this._updateColors()
     this._updateScreenPos()
     this._updateScreenRotation()
@@ -352,6 +366,14 @@ export default class StageScene extends SceneBase {
       if (this._inCrisisMode !== userdata.crisisMode) {
         this._inCrisisMode = userdata.crisisMode
         this._updateCrisisMode()
+      }
+
+      if (!this._touchControls && userdata.touchControls) {
+        this._touchControls = true
+        this._setupTouchControls()
+
+        const { width, height } = this.app.getSize()
+        this.onResize(width, height)
       }
     }
   }
@@ -951,6 +973,7 @@ export default class StageScene extends SceneBase {
   }
 
   public onResize(width: number, height: number): void {
+    // Reposition the room inside the view
     const maxWidth = this._inCrisisMode ? CELL_SIZE * 12 : 1300
     const maxHeight = this._inCrisisMode ? CELL_SIZE * 12 : 1300
     const defaultScale = 1.25
@@ -981,11 +1004,38 @@ export default class StageScene extends SceneBase {
       }
     }
 
-    this._room.position.x = Math.floor(width / 2)
-    this._room.position.y = Math.floor(height / 2)
+    this._room.position.x = width / 2
+    this._room.position.y = height / 2
 
     this._room.scale.x = scale
     this._room.scale.y = scale
+
+    // Reposition the touch controller
+    if (this._touchControls) {
+      const ratio = width / height
+      const narrowScreen = ratio < (10 / 16)
+
+      this._touchContainer.position.x = width / 2
+      this._touchContainer.position.y = height
+
+      this._touchButtons.position.x = width / 2
+      this._touchButtons.position.y = -60
+
+      this._touchDpad.position.x = -width / 2
+      this._touchDpad.position.y = -60
+
+      if (narrowScreen) {
+        const controllerTexture = GameApp.resources.controller.texture
+        const controllerScale = width / controllerTexture.width
+        this._touchController.scale.x = controllerScale
+        this._touchController.scale.y = controllerScale
+
+        this._room.position.y = (height - controllerTexture.height * controllerScale) / 2
+      } else {
+        this._room.scale.x *= 1.5
+        this._room.scale.y *= 1.5
+      }
+    }
 
     super.onResize(width, height)
   }
@@ -1121,5 +1171,164 @@ export default class StageScene extends SceneBase {
         }
       }
     }
+  }
+
+  private _setupTouchControls(): void {
+    // Pause button
+    const pauseBtn = Pixi.Sprite.from(GameApp.resources.pause.texture)
+    pauseBtn.position.x = 16
+    pauseBtn.position.y = 16
+    pauseBtn.interactive = true
+    pauseBtn.on('touchstart', (): void => {
+      this._pause()
+    })
+    this.stage.addChild(pauseBtn)
+
+    // Gamepad illustration
+    const controllerTexture = GameApp.resources.controller.texture
+    this._touchController = Pixi.Sprite.from(GameApp.resources.controller.texture)
+    this._touchController.pivot.x = controllerTexture.width / 2
+    this._touchController.pivot.y = controllerTexture.height
+    // this._touchContainer.addChild(this._touchController)
+
+    // Right buttons
+    this._touchContainer.addChild(this._touchButtons)
+    const btnUpTexture = GameApp.resources.btnUp.texture
+    const btnDownTexture = GameApp.resources.btnDown.texture
+
+    // Rotate button
+    const btnRotate = Pixi.Sprite.from(btnUpTexture)
+    btnRotate.pivot.x = btnUpTexture.width
+    btnRotate.pivot.y = btnUpTexture.height
+    btnRotate.width = 110
+    btnRotate.height = 110
+    btnRotate.interactive = true
+    btnRotate.on('touchstart', (): void => {
+      btnRotate.texture = btnDownTexture
+      this._rotate()
+    })
+    const btnRotateTouchEnd = (): void => {
+      btnRotate.texture = btnUpTexture
+    }
+    btnRotate.on('touchend', btnRotateTouchEnd)
+    btnRotate.on('touchendoutside', btnRotateTouchEnd)
+    this._touchButtons.addChild(btnRotate)
+
+    // Drop button
+    const btnDrop = Pixi.Sprite.from(btnUpTexture)
+    btnDrop.pivot.x = btnUpTexture.width
+    btnDrop.pivot.y = btnUpTexture.height - 30
+    btnDrop.position.x = -btnRotate.width
+    btnDrop.width = 60
+    btnDrop.height = 60
+    btnDrop.interactive = true
+    btnDrop.on('touchstart', (): void => {
+      btnDrop.texture = btnDownTexture
+      this._hardDrop()
+    })
+    const btnDropTouchEnd = (): void => {
+      btnDrop.texture = btnUpTexture
+    }
+    btnDrop.on('touchend', btnDropTouchEnd)
+    btnDrop.on('touchendoutside', btnDropTouchEnd)
+    this._touchButtons.addChild(btnDrop)
+
+    // Left buttons
+    this._touchContainer.addChild(this._touchDpad)
+
+    // Neutral dpad
+    const dpadTexture = GameApp.resources.dpad.texture
+    const dpadUpTexture = GameApp.resources.dpadUp.texture
+    const dpadDownTexture = GameApp.resources.dpadDown.texture
+    const dpadLeftTexture = GameApp.resources.dpadLeft.texture
+    const dpadRightTexture = GameApp.resources.dpadRight.texture
+
+    const dpad = Pixi.Sprite.from(dpadTexture)
+    dpad.pivot.y = dpadTexture.height - 30
+    dpad.width = 180
+    dpad.height = 180
+    this._touchDpad.addChild(dpad)
+
+    // Dpad up
+    const dpadUp = new Pixi.Container()
+    dpadUp.position.x = 62
+    dpadUp.position.y = 0
+    dpadUp.hitArea = new Pixi.Rectangle(0, 0, 80, 80)
+    dpadUp.interactive = true
+    dpadUp.on('touchstart', (): void => {
+      dpad.texture = dpadUpTexture
+      this._pressAction('up')
+    })
+    const dpadUpTouchEnd = (): void => {
+      if (dpad.texture === dpadUpTexture) {
+        dpad.texture = dpadTexture
+      }
+      this._releaseAction('up')
+    }
+    dpadUp.on('touchend', dpadUpTouchEnd)
+    dpadUp.on('touchendoutside', dpadUpTouchEnd)
+    dpad.addChild(dpadUp)
+
+    // Dpad down
+    const dpadDown = new Pixi.Container()
+    dpadDown.position.x = 62
+    dpadDown.position.y = 123
+    dpadDown.hitArea = new Pixi.Rectangle(0, 0, 80, 80)
+    dpadDown.interactive = true
+    dpadDown.on('touchstart', (): void => {
+      dpad.texture = dpadDownTexture
+      this._pressAction('down')
+    })
+    const dpadDownTouchEnd = (): void => {
+      if (dpad.texture === dpadDownTexture) {
+        dpad.texture = dpadTexture
+      }
+      this._releaseAction('down')
+    }
+    dpadDown.on('touchend', dpadDownTouchEnd)
+    dpadDown.on('touchendoutside', dpadDownTouchEnd)
+    dpad.addChild(dpadDown)
+
+    // Dpad left
+    const dpadLeft = new Pixi.Container()
+    dpadLeft.position.x = 0
+    dpadLeft.position.y = 60
+    dpadLeft.hitArea = new Pixi.Rectangle(0, 0, 80, 80)
+    dpadLeft.interactive = true
+    dpadLeft.on('touchstart', (): void => {
+      dpad.texture = dpadLeftTexture
+      this._pressAction('left')
+    })
+    const dpadLeftTouchEnd = (): void => {
+      if (dpad.texture === dpadLeftTexture) {
+        dpad.texture = dpadTexture
+      }
+      this._releaseAction('left')
+    }
+    dpadLeft.on('touchend', dpadLeftTouchEnd)
+    dpadLeft.on('touchendoutside', dpadLeftTouchEnd)
+    dpad.addChild(dpadLeft)
+
+    // Dpad right
+    const dpadRight = new Pixi.Container()
+    dpadRight.position.x = 128
+    dpadRight.position.y = 60
+    dpadRight.hitArea = new Pixi.Rectangle(0, 0, 80, 80)
+    dpadRight.interactive = true
+    dpadRight.on('touchstart', (): void => {
+      dpad.texture = dpadRightTexture
+      this._pressAction('right')
+    })
+    const dpadRightTouchEnd = (): void => {
+      if (dpad.texture === dpadRightTexture) {
+        dpad.texture = dpadTexture
+      }
+      this._releaseAction('right')
+    }
+    dpadRight.on('touchend', dpadRightTouchEnd)
+    dpadRight.on('touchendoutside', dpadRightTouchEnd)
+    dpad.addChild(dpadRight)
+
+    this.stage.addChild(this._touchContainer)
   }
 }
