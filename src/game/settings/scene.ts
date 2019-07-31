@@ -49,18 +49,21 @@ export default class SettingsScene extends SceneBase {
     this._loadSettings()
 
     let titleString = "IT'S FIRST-PERSON TETRIS"
-    if (userdata.gameOver !== undefined) {
-      titleString = "GAME OVER"
-      this._hiScore = userdata.gameOver.hiScore
-      this._saveSettings()
-      this._drawStageData(userdata.gameOver)
-    } else if (userdata.pause !== undefined) {
+    if (userdata.pause !== undefined) {
       titleString = "PAUSED"
       this._isPaused = true
       this.app.sound.playSfx('pause')
       this._drawStageData(userdata.pause)
     } else {
-      this._drawControls()
+      this._playMusic()
+      if (userdata.gameOver !== undefined) {
+        titleString = "GAME OVER"
+        this._hiScore = userdata.gameOver.hiScore
+        this._saveSettings()
+        this._drawStageData(userdata.gameOver)
+      } else {
+        this._drawControls()
+      }
     }
 
     this.app.sound.setSfxEnabled(this._sfxOn)
@@ -84,11 +87,12 @@ export default class SettingsScene extends SceneBase {
 
     for (let i = 0; i < 4; ++i) {
       const selected = (i === this._selectedMusic)
+      const interactive = (!selected || !this.app.sound.isMusicPlaying())
       const checkBox = new CheckBox(i == 3 ? 'OFF' : `TYPE${i+1}`, selected)
       checkBox.position.x = 38 + i * 160
       checkBox.position.y = 220
-      checkBox.interactive = !selected
-      checkBox.buttonMode = !selected
+      checkBox.interactive = interactive
+      checkBox.buttonMode = interactive
       this._container.addChild(checkBox)
       checkBox.on('pointertap', (): void => this._selectMusic(i))
       this._musicCheckboxes.push(checkBox)
@@ -170,15 +174,6 @@ export default class SettingsScene extends SceneBase {
     this._container.pivot.y = Math.floor(CONTAINER_HEIGHT / 2)
 
     this._drawCreditText()
-
-    if (userdata.pause === undefined) {
-      if (this._inCrisis) {
-        this.app.sound.setMusic('assets/music/crisis.mp3', 'assets/music/crisis.mp3')
-        this.app.sound.playSlowMusic()
-      } else {
-        this._playMusic()
-      }
-    }
   }
 
   public onResize(width: number, height: number): void {
@@ -363,7 +358,11 @@ export default class SettingsScene extends SceneBase {
   }
 
   private _playMusic(index: number = this._selectedMusic): void {
-    if (this._inCrisis) return
+    if (this._inCrisis) {
+      this.app.sound.setMusic('assets/music/crisis.mp3', 'assets/music/crisis.mp3')
+      this.app.sound.playSlowMusic()
+      return
+    }
 
     const sound = this.app.sound
     sound.stopMusic()
@@ -381,7 +380,12 @@ export default class SettingsScene extends SceneBase {
       lightsOut: this._lightsOut,
       crisisMode: this._inCrisis,
     }))
+
     this.app.sound.playSfx('beep')
+
+    if (!this.app.sound.isMusicPlaying() && (this._inCrisis || this._selectedMusic < 3)) {
+      this._playMusic()
+    }
   }
 
   private _resumeGame(): void {
