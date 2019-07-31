@@ -1012,25 +1012,29 @@ export default class StageScene extends SceneBase {
 
     // Reposition the touch controller
     if (this._touchControls) {
-      const narrowScreen = true
+      const ratio = width / height
+      const narrowScreen = ratio < (10 / 16)
 
-      if (narrowScreen) {
-        this._touchContainer.position.x = width / 2
-        this._touchContainer.position.y = height
-
-        const controllerTexture = GameApp.resources.controller.texture
-        const controllerScale = width / controllerTexture.width
-        this._touchController.scale.x = controllerScale
-        this._touchController.scale.y = controllerScale
-
-        this._room.position.y = (height - controllerTexture.height * controllerScale) / 2
-      }
+      this._touchContainer.position.x = width / 2
+      this._touchContainer.position.y = height
 
       this._touchButtons.position.x = width / 2
       this._touchButtons.position.y = -60
 
       this._touchDpad.position.x = -width / 2
       this._touchDpad.position.y = -60
+
+      if (narrowScreen) {
+        const controllerTexture = GameApp.resources.controller.texture
+        const controllerScale = width / controllerTexture.width
+        this._touchController.scale.x = controllerScale
+        this._touchController.scale.y = controllerScale
+
+        this._room.position.y = (height - controllerTexture.height * controllerScale) / 2
+      } else {
+        this._room.scale.x *= 1.5
+        this._room.scale.y *= 1.5
+      }
     }
 
     super.onResize(width, height)
