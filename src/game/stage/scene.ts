@@ -414,6 +414,10 @@ export default class StageScene extends SceneBase {
     const directions = ['left', 'right', 'down', 'up']
     const angle = this._effectiveAngle()
 
+    if (input.isPressed('pause')) {
+      this._pause()
+    }
+
     directions.forEach((direction): void => {
       if (input.isReleased(direction)) {
         this._releaseAction(direction, angle)
@@ -433,10 +437,6 @@ export default class StageScene extends SceneBase {
 
       if (input.isPressed('drop')) {
         this._hardDrop()
-      }
-
-      if (input.isPressed('pause')) {
-        this._pause()
       }
 
       if (this._leftHeld || this._rightHeld) {
@@ -1205,7 +1205,9 @@ export default class StageScene extends SceneBase {
     btnRotate.interactive = true
     btnRotate.on('touchstart', (): void => {
       btnRotate.texture = btnDownTexture
-      this._rotate()
+      if (this._state === StageState.Idle) {
+        this._rotate()
+      }
     })
     const btnRotateTouchEnd = (): void => {
       btnRotate.texture = btnUpTexture
@@ -1224,7 +1226,9 @@ export default class StageScene extends SceneBase {
     btnDrop.interactive = true
     btnDrop.on('touchstart', (): void => {
       btnDrop.texture = btnDownTexture
-      this._hardDrop()
+      if (this._state === StageState.Idle) {
+        this._hardDrop()
+      }
     })
     const btnDropTouchEnd = (): void => {
       btnDrop.texture = btnUpTexture
@@ -1257,7 +1261,9 @@ export default class StageScene extends SceneBase {
     dpadUp.interactive = true
     dpadUp.on('touchstart', (): void => {
       dpad.texture = dpadUpTexture
-      this._pressAction('up')
+      if (this._state === StageState.Idle) {
+        this._pressAction('up')
+      }
     })
     const dpadUpTouchEnd = (): void => {
       if (dpad.texture === dpadUpTexture) {
@@ -1277,7 +1283,9 @@ export default class StageScene extends SceneBase {
     dpadDown.interactive = true
     dpadDown.on('touchstart', (): void => {
       dpad.texture = dpadDownTexture
-      this._pressAction('down')
+      if (this._state === StageState.Idle) {
+        this._pressAction('down')
+      }
     })
     const dpadDownTouchEnd = (): void => {
       if (dpad.texture === dpadDownTexture) {
@@ -1297,7 +1305,9 @@ export default class StageScene extends SceneBase {
     dpadLeft.interactive = true
     dpadLeft.on('touchstart', (): void => {
       dpad.texture = dpadLeftTexture
-      this._pressAction('left')
+      if (this._state === StageState.Idle) {
+        this._pressAction('left')
+      }
     })
     const dpadLeftTouchEnd = (): void => {
       if (dpad.texture === dpadLeftTexture) {
@@ -1317,7 +1327,9 @@ export default class StageScene extends SceneBase {
     dpadRight.interactive = true
     dpadRight.on('touchstart', (): void => {
       dpad.texture = dpadRightTexture
-      this._pressAction('right')
+      if (this._state === StageState.Idle) {
+        this._pressAction('right')
+      }
     })
     const dpadRightTouchEnd = (): void => {
       if (dpad.texture === dpadRightTexture) {
