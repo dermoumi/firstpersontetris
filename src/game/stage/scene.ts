@@ -208,6 +208,11 @@ export default class StageScene extends SceneBase {
       this._hiScore = userdata.hiScore
     }
 
+    if (window.location.hash.startsWith('#tps') || window.location.hash.indexOf(',tps') >= 0) {
+      this._firstPersonMode = false
+      this._animateRotation = false
+    }
+
     this._screen.sortableChildren = true
 
     this._grid.position.x = GRID_SCREEN_X
