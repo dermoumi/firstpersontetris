@@ -139,6 +139,20 @@ export default class Input {
     }
   }
 
+  public setPressed(button: Button, repeat: boolean = false): void {
+    // Add the button to the list of pressed buttons since last update
+    const buttonId = getButtonId(button)
+    this.newState |= buttonId
+
+    // Save the repeated state of this button
+    if (repeat) this.newRepeatState |= buttonId
+  }
+
+  public setReleased(button: Button): void {
+    // Unregister the key from the pressed buttons since last update
+    this.newState &= ~getButtonId(button)
+  }
+
   public isPressed(button: Button, repeat: boolean = false): boolean {
     const buttonId = getButtonId(button)
 
