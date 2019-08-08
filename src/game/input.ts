@@ -1,9 +1,15 @@
-interface ButtonMap {
-  [key: string]: number;
+export enum Button {
+  Up,
+  Left,
+  Down,
+  Right,
+  Rotate,
+  Drop,
+  Pause,
 }
 
 interface BindingsMap {
-  [key: string]: string;
+  [key: string]: Button;
 }
 
 interface KeyNameMap {
@@ -16,15 +22,16 @@ interface AxisThresholdMap {
 
 type AxisThreshold = number | AxisThresholdMap
 
+function getButtonId(button: Button): number {
+  return 1 << (button as number)
+}
+
 export default class Input {
-  private ids: ButtonMap = {}
-  private idCount = 0
   private oldState = 0
   private currentState = 0
   private newState = 0
   private repeatState = 0
   private newRepeatState = 0
-  private keyNames: KeyNameMap = {}
   private bindings: BindingsMap = {}
   private axes = { x: 0, y: 0 }
   private axisThreshold: AxisThreshold = 0.2
@@ -41,20 +48,15 @@ export default class Input {
       const button = this.bindings[keyCode]
 
       // If the button is not bound, do nothing
-      if (!button) return
+      if (button === undefined) return
 
       // Add the button to the list of pressed buttons since last update
-      const buttonId = this.getButtonId(button)
+      const buttonId = getButtonId(button)
       this.newState |= buttonId
       event.preventDefault()
 
       // Save the repeated state of this button
       if (event.repeat) this.newRepeatState |= buttonId
-
-      // Since we only know the key by its physical location
-      // We might as well start building a database of key names
-      // while we have access to key names
-      if (this.level3Supported) this.keyNames[button] = (event.key || event.keyCode).toString()
     }, false)
 
     // Register event for key up
@@ -64,10 +66,10 @@ export default class Input {
       const button = this.bindings[keyCode]
 
       // If the button is not bound, do nothing
-      if (!button) return
+      if (button === undefined) return
 
       // Unregister the key from the pressed buttons since last update
-      this.newState &= ~this.getButtonId(button)
+      this.newState &= ~getButtonId(button)
       event.preventDefault()
     }, false)
 
@@ -76,16 +78,6 @@ export default class Input {
       this.newState = 0
       this.newRepeatState = 0
     }, false)
-  }
-
-  private getButtonId(button: string): number {
-    let id = this.ids[button]
-    if (id === undefined) {
-      id = 1 << this.idCount++
-      this.ids[button] = id
-    }
-
-    return id
   }
 
   public getAxisThreshold(axis: string): number {
@@ -99,19 +91,13 @@ export default class Input {
     return axisValue > this.getAxisThreshold(axis) ? axisValue : 0
   }
 
-  public getKeyName(button: string): string {
-    return this.keyNames[button] || button
-  }
-
-  public setBindings(newBindings: BindingsMap, newAxisThreshold: AxisThreshold | null = null): Input {
-    this.ids = {}
-    this.idCount = 0
+  public setBindings(bindings: BindingsMap, newAxisThreshold: AxisThreshold | null = null): Input {
     this.oldState = 0
     this.currentState = 0
     this.newState = 0
     this.repeatState = 0
     this.newRepeatState = 0
-    this.bindings = newBindings
+    this.bindings = bindings
     this.axes = { x: 0, y: 0 }
     if (newAxisThreshold !== null) this.axisThreshold = newAxisThreshold
 
@@ -128,33 +114,33 @@ export default class Input {
     // Handle keyboard axis emulation
     const axisFactor = 1
 
-    if (this.isPressed('right')) {
+    if (this.isPressed(Button.Right)) {
       this.axes['x'] = axisFactor
-    } else if (this.isReleased('right')) {
-      this.axes['x'] = this.isDown('left') ? -axisFactor : 0
+    } else if (this.isReleased(Button.Right)) {
+      this.axes['x'] = this.isDown(Button.Left) ? -axisFactor : 0
     }
 
-    if (this.isPressed('left')) {
+    if (this.isPressed(Button.Left)) {
       this.axes['x'] = -axisFactor
-    } else if (this.isReleased('left')) {
-      this.axes['x'] = this.isDown('right') ? axisFactor : 0
+    } else if (this.isReleased(Button.Left)) {
+      this.axes['x'] = this.isDown(Button.Right) ? axisFactor : 0
     }
 
-    if (this.isPressed('down')) {
+    if (this.isPressed(Button.Down)) {
       this.axes['y'] = axisFactor
-    } else if (this.isReleased('down')) {
-      this.axes['y'] = this.isDown('up') ? -axisFactor : 0
+    } else if (this.isReleased(Button.Down)) {
+      this.axes['y'] = this.isDown(Button.Up) ? -axisFactor : 0
     }
 
-    if (this.isPressed('up')) {
+    if (this.isPressed(Button.Up)) {
       this.axes['y'] = -axisFactor
-    } else if (this.isReleased('up')) {
-      this.axes['y'] = this.isDown('down') ? axisFactor : 0
+    } else if (this.isReleased(Button.Up)) {
+      this.axes['y'] = this.isDown(Button.Down) ? axisFactor : 0
     }
   }
 
-  public isPressed(button: string, repeat: boolean = false): boolean {
-    const buttonId = this.getButtonId(button)
+  public isPressed(button: Button, repeat: boolean = false): boolean {
+    const buttonId = getButtonId(button)
 
     const result = (repeat && (this.repeatState & buttonId)) ||
       ((this.currentState & buttonId) && !(this.oldState & buttonId))
@@ -162,15 +148,15 @@ export default class Input {
     return !!result
   }
 
-  public isReleased(button: string): boolean {
-    const buttonId = this.getButtonId(button)
+  public isReleased(button: Button): boolean {
+    const buttonId = getButtonId(button)
 
     const result = !(this.currentState & buttonId) && (this.oldState & buttonId)
     return !!result
   }
 
-  public isDown(button: string): boolean {
-    const buttonId = this.getButtonId(button)
+  public isDown(button: Button): boolean {
+    const buttonId = getButtonId(button)
 
     const result = this.currentState & buttonId
     return !!result

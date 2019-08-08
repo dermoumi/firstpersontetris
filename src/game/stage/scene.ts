@@ -2,7 +2,7 @@ import SceneBase from 'game/scene/base'
 import GameApp from 'game/app'
 import Tetromino, { TetrominoAngle } from './tetromino'
 import StageGrid, { WIDTH as GRID_WIDTH, HEIGHT as GRID_HEIGHT, CELL_SIZE, CompleteRow } from './grid'
-import Input from 'game/input'
+import Input, { Button } from 'game/input'
 import * as Pixi from 'pixi.js'
 import Block, { BlockType, BLOCK_SIZE } from './block'
 import { COLOR_TABLE, SCORE_TABLE, STEP_TIME_TABLE } from './constants'
@@ -138,26 +138,26 @@ export default class StageScene extends SceneBase {
   private _touchButtons = new Pixi.Container()
   private _touchPause!: Pixi.Sprite
 
-  private PRESS_DIR: Record<string, Function[]> = {
-    left: [
+  private PRESS_DIR: Record<number, Function[]> = {
+    [Button.Left]: [
       this._pressLeft.bind(this),
       (): void => {},
       this._pressRight.bind(this),
       this._pressDown.bind(this),
     ],
-    right: [
+    [Button.Right]: [
       this._pressRight.bind(this),
       this._pressDown.bind(this),
       this._pressLeft.bind(this),
       (): void => {},
     ],
-    down: [
+    [Button.Down]: [
       this._pressDown.bind(this),
       this._pressLeft.bind(this),
       (): void => {},
       this._pressRight.bind(this),
     ],
-    up: [
+    [Button.Up]: [
       (): void => {},
       this._pressRight.bind(this),
       this._pressDown.bind(this),
@@ -165,26 +165,26 @@ export default class StageScene extends SceneBase {
     ],
   }
 
-  private RELEASE_DIR: Record<string, Function[]> = {
-    left: [
+  private RELEASE_DIR: Record<number, Function[]> = {
+    [Button.Left]: [
       this._releaseLeft.bind(this),
       (): void => {},
       this._releaseRight.bind(this),
       this._releaseDown.bind(this),
     ],
-    right: [
+    [Button.Right]: [
       this._releaseRight.bind(this),
       this._releaseDown.bind(this),
       this._releaseLeft.bind(this),
       (): void => {},
     ],
-    down: [
+    [Button.Down]: [
       this._releaseDown.bind(this),
       this._releaseLeft.bind(this),
       (): void => {},
       this._releaseRight.bind(this),
     ],
-    up: [
+    [Button.Up]: [
       (): void => {},
       this._releaseRight.bind(this),
       this._releaseDown.bind(this),
@@ -416,10 +416,10 @@ export default class StageScene extends SceneBase {
   }
 
   public onProcessInput(input: Input, frameTime: number): void {
-    const directions = ['left', 'right', 'down', 'up']
+    const directions = [Button.Left, Button.Right, Button.Down, Button.Up]
     const angle = this._effectiveAngle()
 
-    if (input.isPressed('pause')) {
+    if (input.isPressed(Button.Pause)) {
       this._pause()
     }
 
@@ -436,11 +436,11 @@ export default class StageScene extends SceneBase {
         }
       })
 
-      if (input.isPressed('rotate', true)) {
+      if (input.isPressed(Button.Rotate, true)) {
         this._rotate()
       }
 
-      if (input.isPressed('drop')) {
+      if (input.isPressed(Button.Drop)) {
         this._hardDrop()
       }
 
@@ -480,26 +480,26 @@ export default class StageScene extends SceneBase {
     return (this._lastTetrominoAngle + this._currentTetromino.getAngle()) % 4
   }
 
-  private _pressAction(direction: string, angle = this._effectiveAngle()): void {
+  private _pressAction(direction: Button, angle = this._effectiveAngle()): void {
     if (this._firstPersonMode) {
       this.PRESS_DIR[direction][angle]()
-    } else if (direction === 'left') {
+    } else if (direction === Button.Left) {
       this._pressLeft()
-    } else if (direction === 'right') {
+    } else if (direction === Button.Right) {
       this._pressRight()
-    } else if (direction === 'down') {
+    } else if (direction === Button.Down) {
       this._pressDown()
     }
   }
 
-  private _releaseAction(direction: string, angle = this._effectiveAngle()): void {
+  private _releaseAction(direction: Button, angle = this._effectiveAngle()): void {
     if (this._firstPersonMode) {
       this.RELEASE_DIR[direction][angle]()
-    } else if (direction === 'left') {
+    } else if (direction === Button.Left) {
       this._releaseLeft()
-    } else if (direction === 'right') {
+    } else if (direction === Button.Right) {
       this._releaseRight()
-    } else if (direction === 'down') {
+    } else if (direction === Button.Down) {
       this._releaseDown()
     }
   }
@@ -1267,14 +1267,14 @@ export default class StageScene extends SceneBase {
     dpadUp.on('touchstart', (): void => {
       dpad.texture = dpadUpTexture
       if (this._state === StageState.Idle) {
-        this._pressAction('up')
+        this._pressAction(Button.Up)
       }
     })
     const dpadUpTouchEnd = (): void => {
       if (dpad.texture === dpadUpTexture) {
         dpad.texture = dpadTexture
       }
-      this._releaseAction('up')
+      this._releaseAction(Button.Up)
     }
     dpadUp.on('touchend', dpadUpTouchEnd)
     dpadUp.on('touchendoutside', dpadUpTouchEnd)
@@ -1289,14 +1289,14 @@ export default class StageScene extends SceneBase {
     dpadDown.on('touchstart', (): void => {
       dpad.texture = dpadDownTexture
       if (this._state === StageState.Idle) {
-        this._pressAction('down')
+        this._pressAction(Button.Down)
       }
     })
     const dpadDownTouchEnd = (): void => {
       if (dpad.texture === dpadDownTexture) {
         dpad.texture = dpadTexture
       }
-      this._releaseAction('down')
+      this._releaseAction(Button.Down)
     }
     dpadDown.on('touchend', dpadDownTouchEnd)
     dpadDown.on('touchendoutside', dpadDownTouchEnd)
@@ -1311,14 +1311,14 @@ export default class StageScene extends SceneBase {
     dpadLeft.on('touchstart', (): void => {
       dpad.texture = dpadLeftTexture
       if (this._state === StageState.Idle) {
-        this._pressAction('left')
+        this._pressAction(Button.Left)
       }
     })
     const dpadLeftTouchEnd = (): void => {
       if (dpad.texture === dpadLeftTexture) {
         dpad.texture = dpadTexture
       }
-      this._releaseAction('left')
+      this._releaseAction(Button.Left)
     }
     dpadLeft.on('touchend', dpadLeftTouchEnd)
     dpadLeft.on('touchendoutside', dpadLeftTouchEnd)
@@ -1333,14 +1333,14 @@ export default class StageScene extends SceneBase {
     dpadRight.on('touchstart', (): void => {
       dpad.texture = dpadRightTexture
       if (this._state === StageState.Idle) {
-        this._pressAction('right')
+        this._pressAction(Button.Right)
       }
     })
     const dpadRightTouchEnd = (): void => {
       if (dpad.texture === dpadRightTexture) {
         dpad.texture = dpadTexture
       }
-      this._releaseAction('right')
+      this._releaseAction(Button.Right)
     }
     dpadRight.on('touchend', dpadRightTouchEnd)
     dpadRight.on('touchendoutside', dpadRightTouchEnd)
