@@ -1,5 +1,6 @@
 // General game constants
 export const MaxLocalPlayers = 1
+export const JoystickThreshold = 0.35
 
 // List of buttons used in the game (up to 32 max)
 // Enumerated as powers of 2 to allow combining
@@ -61,11 +62,14 @@ export function getDefaultKeyMap(_player: number, _level3Supported: boolean): Ke
 }
 
 // Default gamepad button mapping
-export function getDefaultGamepadMap(_player: number, _gamepad: Gamepad): GamepadMap {
+export function getDefaultGamepadMap(_gamepad: Gamepad): GamepadMap {
   return {
     buttons: {
       [0]: Buttons.Rotate,
+      [1]: Buttons.Rotate,
       [2]: Buttons.Drop,
+      [3]: Buttons.Drop,
+      [8]: Buttons.Pause,
       [9]: Buttons.Pause,
       [12]: Buttons.Up,
       [13]: Buttons.Down,
@@ -78,41 +82,52 @@ export function getDefaultGamepadMap(_player: number, _gamepad: Gamepad): Gamepa
       [2]: Axis.RightX,
       [3]: Axis.RightY,
     },
-    axisButtons: [{
-      axis: 0,
-      button: Buttons.Left,
-      negative: true,
-      threshold: 0.35,
-    }, {
-      axis: 0,
-      button: Buttons.Right,
-      threshold: 0.35,
-    }, {
-      axis: 1,
-      button: Buttons.Up,
-      negative: true,
-      threshold: 0.35,
-    }, {
-      axis: 1,
-      button: Buttons.Down,
-      threshold: 0.35,
-    }],
-    buttonAxes: [{
-      button: 6,
-      axis: Axis.TriggerL,
-    }, {
-      button: 7,
-      axis: Axis.TriggerR,
-    }],
+    axisButtons: [
+      {
+        axis: 0,
+        button: Buttons.Left,
+        negative: true,
+        threshold: JoystickThreshold,
+      }, {
+        axis: 0,
+        button: Buttons.Right,
+        threshold: JoystickThreshold,
+      }, {
+        axis: 1,
+        button: Buttons.Up,
+        negative: true,
+        threshold: JoystickThreshold,
+      }, {
+        axis: 1,
+        button: Buttons.Down,
+        threshold: JoystickThreshold,
+      },
+    ],
+    buttonAxes: [
+      {
+        button: 6,
+        axis: Axis.TriggerL,
+      }, {
+        button: 7,
+        axis: Axis.TriggerR,
+      },
+    ],
+    players: {
+      [0]: 0,
+      [1]: 0,
+      [2]: 0,
+      [3]: 0,
+    },
   }
 }
 
 // Private declataions
 export interface GamepadMap {
-  buttons?: Record<number, Buttons>;
-  axes?: Record<number, DirectMapping | AxisMapping>;
+  buttons: Record<number, Buttons>;
+  axes: Record<number, DirectMapping | AxisMapping>;
   axisButtons?: AxisToButtonMapping[];
   buttonAxes?: ButtonToAxisMapping[];
+  players?: Record<number, number>;
 }
 
 export interface KeyboardMap {

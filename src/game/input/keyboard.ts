@@ -3,7 +3,7 @@ import { KeyboardMap } from 'game/config'
 import Player from './player'
 
 export default class KeyboardHandler implements Device {
-  private mapping!: KeyboardMap
+  private mapping: KeyboardMap
   private player?: Player
   private eventKeyAttr: string
 

@@ -214,7 +214,7 @@ export default class SettingsScene extends SceneBase {
         this._resumeGame()
       }
     } else {
-      if (player.isPressed(Buttons.Drop)) {
+      if (player.isPressed(Buttons.Pause | Buttons.Drop | Buttons.Rotate)) {
         this._startGame()
       }
     }

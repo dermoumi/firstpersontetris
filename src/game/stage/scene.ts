@@ -438,7 +438,7 @@ export default class StageScene extends SceneBase {
         }
       })
 
-      if (player.isPressed(Buttons.Rotate, true)) {
+      if (player.isPressed(Buttons.Rotate)) {
         this._rotate()
       }
 
