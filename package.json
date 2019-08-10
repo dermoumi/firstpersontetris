@@ -7,8 +7,8 @@
   "scripts": {
     "build": "webpack",
     "start": "http-server -c2592000 dist",
-    "dev": "webpack-dev-server --open --mode development --host 0.0.0.0",
-    "lint": "eslint 'src/**/*'"
+    "dev": "webpack-dev-server --mode development --host 0.0.0.0",
+    "lint": "eslint --ext .ts src/**"
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^1.13.0",

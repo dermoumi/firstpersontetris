@@ -31,18 +31,6 @@ export default class GameApp {
     this.pixi.ticker.autoStart = false
     this.pixi.ticker.stop()
     this.container.appendChild(this.pixi.view)
-
-    // Set up default bindings
-    // TODO: Set up bindings for non-level 3 keyboard events
-    this.input.setBindings({
-      ArrowUp: 'up',
-      ArrowLeft: 'left',
-      ArrowDown: 'down',
-      ArrowRight: 'right',
-      Space: 'rotate',
-      Enter: 'drop',
-      Escape: 'pause',
-    })
   }
 
   public run(): void {
