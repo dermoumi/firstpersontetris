@@ -131,8 +131,6 @@ export function getDefaultGamepadMap(gamepad: Gamepad): GamepadMap {
     axes: {
       [0]: Axis.LeftX,
       [1]: Axis.LeftY,
-      [2]: Axis.RightX,
-      [3]: Axis.RightY,
     },
     axisButtons: [
       {
@@ -157,39 +155,8 @@ export function getDefaultGamepadMap(gamepad: Gamepad): GamepadMap {
         button: Buttons.Down,
         threshold: JoystickThreshold,
       },
-      {
-        axis: Axis.DpadX,
-        button: Buttons.Left,
-        negative: true,
-        threshold: JoystickThreshold,
-      },
-      {
-        axis: Axis.DpadX,
-        button: Buttons.Right,
-        threshold: JoystickThreshold,
-      },
-      {
-        axis: Axis.DpadY,
-        button: Buttons.Up,
-        negative: true,
-        threshold: JoystickThreshold,
-      },
-      {
-        axis: Axis.DpadY,
-        button: Buttons.Down,
-        threshold: JoystickThreshold,
-      },
     ],
-    buttonAxes: [
-      {
-        button: 6,
-        axis: Axis.TriggerL,
-      },
-      {
-        button: 7,
-        axis: Axis.TriggerR,
-      },
-    ],
+    buttonAxes: [],
     players: {
       [0]: 0,
       [1]: 0,
@@ -212,7 +179,31 @@ export function getDefaultGamepadMap(gamepad: Gamepad): GamepadMap {
   })
 
   if (hasHatLayout) {
-    mapping.axisButtons
+    mapping.axisButtons = [
+      ...mapping.axisButtons,
+      {
+        axis: Axis.DpadX,
+        button: Buttons.Left,
+        negative: true,
+        threshold: JoystickThreshold,
+      },
+      {
+        axis: Axis.DpadX,
+        button: Buttons.Right,
+        threshold: JoystickThreshold,
+      },
+      {
+        axis: Axis.DpadY,
+        button: Buttons.Up,
+        negative: true,
+        threshold: JoystickThreshold,
+      },
+      {
+        axis: Axis.DpadY,
+        button: Buttons.Down,
+        threshold: JoystickThreshold,
+      },
+    ]
   }
 
   return mapping
