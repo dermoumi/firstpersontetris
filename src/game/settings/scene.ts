@@ -1,9 +1,10 @@
 import * as Pixi from 'pixi.js'
 import GameApp from 'game/app'
-import Input, { Button } from 'game/input'
+import Input from 'game/input'
 import SceneBase from 'game/scene/base'
 import SceneStage from 'game/stage/scene'
 import CheckBox from './checkbox'
+import { Buttons } from 'game/config'
 
 const CONTAINER_WIDTH = 640
 const CONTAINER_HEIGHT = 480
@@ -206,12 +207,14 @@ export default class SettingsScene extends SceneBase {
   }
 
   public onProcessInput(input: Input): void {
+    const player = input.getFor(0)
+
     if (this._isPaused) {
-      if (input.isPressed(Button.Pause)) {
+      if (player.isPressed(Buttons.Pause)) {
         this._resumeGame()
       }
     } else {
-      if (input.isPressed(Button.Drop)) {
+      if (player.isPressed(Buttons.Drop)) {
         this._startGame()
       }
     }

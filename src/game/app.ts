@@ -1,7 +1,7 @@
 import * as Pixi from 'pixi.js'
 import SceneManager from 'game/scene/manager'
 import SettingsScene from 'game/settings/scene'
-import Input, { Button } from 'game/input'
+import Input from 'game/input'
 import Sound from 'game/sound'
 
 export interface SizeObject {
@@ -31,18 +31,6 @@ export default class GameApp {
     this.pixi.ticker.autoStart = false
     this.pixi.ticker.stop()
     this.container.appendChild(this.pixi.view)
-
-    // Set up default bindings
-    // TODO: Set up bindings for non-level 3 keyboard events
-    this.input.setBindings({
-      ArrowUp: Button.Up,
-      ArrowLeft: Button.Left,
-      ArrowDown: Button.Down,
-      ArrowRight: Button.Right,
-      Space: Button.Rotate,
-      Enter: Button.Drop,
-      Escape: Button.Pause,
-    })
   }
 
   public run(): void {
