@@ -1,7 +1,6 @@
 import Device from './device'
 import Player from './player'
-import { GamepadMap, Axis, AxisMapping, AxisRange, JoystickThreshold } from 'game/config'
-import { type } from 'os'
+import { GamepadMap, AxisMapping, AxisRange, JoystickThreshold } from 'game/config'
 
 export default class GamepadHandler implements Device {
   private mapping: GamepadMap
@@ -9,6 +8,7 @@ export default class GamepadHandler implements Device {
   private player?: Player
 
   private buttonState: Record<number, boolean> = {}
+  private buttonValues: Record<number, number> = {}
   private axisState: Record<number, number> = {}
 
   public constructor(gamepad: Gamepad, mapping: GamepadMap,  player?: Player) {
@@ -111,7 +111,7 @@ export default class GamepadHandler implements Device {
       this.axisState[axis] = roundedValue
     })
 
-    // Process axes to buttons mappings
+    // Process axis to buttons mappings
     this.mapping.axisButtons.forEach(({ axis, button, threshold, negative }): void => {
       if (threshold === undefined) threshold = JoystickThreshold
 
@@ -123,6 +123,21 @@ export default class GamepadHandler implements Device {
       } else {
         player.newState &= ~button
       }
+    })
+
+    // Process button to axis mappings
+    this.mapping.buttonAxes.forEach(({ button, axis, factor }): void => {
+      if (button > gamepad.buttons.length) return
+
+      if (factor === undefined) factor = 1
+
+      const { value } = gamepad.buttons[button]
+      const oldValue = this.buttonValues[button] || 0
+      if (Math.abs(oldValue - value) > 0.01) {
+        player.axes[axis] = value * factor
+      }
+
+      this.buttonValues[button] = value
     })
   }
 }
