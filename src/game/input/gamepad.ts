@@ -1,6 +1,7 @@
 import Device from './device'
 import Player from './player'
-import { GamepadMap } from 'game/config'
+import { GamepadMap, Axis, AxisMapping, AxisRange } from 'game/config'
+import { type } from 'os'
 
 export default class GamepadHandler implements Device {
   private mapping: GamepadMap
@@ -8,6 +9,7 @@ export default class GamepadHandler implements Device {
   private player?: Player
 
   private buttonState: Record<number, boolean> = {}
+  private axisState: Record<number, number> = {}
 
   public constructor(gamepad: Gamepad, mapping: GamepadMap,  player?: Player) {
     this.index = gamepad.index
@@ -47,17 +49,59 @@ export default class GamepadHandler implements Device {
       const target = this.mapping.buttons[button]
       if (target === undefined) return
 
-      if (this.buttonState[button] != pressed) {
-        if (pressed) {
-          player.newState |= target
-        } else {
-          player.newState &= ~target
-        }
+      if (this.buttonState[button] === pressed) return
 
-        this.buttonState[button] = pressed
+      if (pressed) {
+        player.newState |= target
+      } else {
+        player.newState &= ~target
       }
+
+      this.buttonState[button] = pressed
     })
 
     // Update axes
+    gamepad.axes.forEach((value, axis): void => {
+      const target = this.mapping.axes[axis]
+      if (target === undefined) return
+
+      const roundedValue = Math.floor(value * 100) / 100
+
+      if (this.axisState[axis] === roundedValue) return
+
+      if (target instanceof Object) {
+        const mapping = target as AxisMapping
+        if (mapping.range === AxisRange.Hat && mapping.targetY) {
+          if (roundedValue > 1) {
+            player.axes[mapping.target] = 0
+            player.axes[mapping.targetY] = 0
+          } else {
+            const direction = (1 + roundedValue) * 7/8 - 1
+
+            const xValue = -Math.sin(direction * Math.PI)
+            const yValue = Math.cos(direction * Math.PI)
+
+            player.axes[mapping.target] = xValue
+            player.axes[mapping.targetY] = yValue
+          }
+        } else {
+          let axisValue = roundedValue
+
+          if (mapping.range === AxisRange.Positive) {
+            axisValue = Math.max(0, axisValue)
+          } else if (mapping.range === AxisRange.Negative) {
+            axisValue = Math.min(0, axisValue)
+          }
+
+          if (mapping.invert) {
+            axisValue *= -1
+          }
+        }
+      } else {
+        player.axes[target] = roundedValue
+      }
+
+      this.axisState[axis] = roundedValue
+    })
   }
 }

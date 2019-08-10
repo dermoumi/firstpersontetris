@@ -1,3 +1,53 @@
+
+// Private declataions
+export interface GamepadMap {
+  buttons: Record<number, Buttons>;
+  axes: Record<number, DirectMapping | AxisMapping>;
+  axisButtons?: AxisToButtonMapping[];
+  buttonAxes?: ButtonToAxisMapping[];
+  players?: Record<number, number>;
+}
+
+export interface KeyboardMap {
+  keys: Record<string, Buttons>;
+  keyAxes: Record<number, KeyToAxisMapping>;
+}
+
+type DirectMapping = Axis;
+
+export enum AxisRange {
+  Full,     // Take the value as is
+  Positive, // Only when the value is positive
+  Negative, // Only when the value is negative
+  Hat,      // Transalte Hat direction into X and Y axes
+}
+
+export interface AxisMapping {
+  target: Axis;      // The axe to translate into
+  invert?: boolean;  // Invert value sign
+  range?: AxisRange; // How to process the value
+  targetY?: Axis;    // If range == Hat, set the axis for Y values
+}
+
+interface AxisToButtonMapping {
+  axis: Axis;         // The axis to map into a button
+  button: Buttons;    // Which button to map to
+  threshold?: number; // The minimum value before this axe is counted
+  negative?: boolean; // Whether to check on the negative side of the axis
+}
+
+interface ButtonToAxisMapping {
+  button: number;  // The button to map into an axis
+  axis: Axis;      // Which axis to map to
+  factor?: number; // The factor of the value of the button to axis (e.g. -1 to invert)
+}
+
+interface KeyToAxisMapping {
+  axis: Axis;         // Which axis to map the key to
+  factor?: number;    // The factor of the value of the button to axis (e.g. -1 to invert)
+  opposite?: Buttons; // The key that's the opposite
+}
+
 // General game constants
 export const MaxLocalPlayers = 1
 export const JoystickThreshold = 0.35
@@ -20,6 +70,8 @@ export enum Axis {
   LeftY,
   RightX,
   RightY,
+  DpadX,
+  DpadY,
   TriggerL,
   TriggerR,
 }
@@ -62,8 +114,8 @@ export function getDefaultKeyMap(_player: number, _level3Supported: boolean): Ke
 }
 
 // Default gamepad button mapping
-export function getDefaultGamepadMap(_gamepad: Gamepad): GamepadMap {
-  return {
+export function getDefaultGamepadMap(gamepad: Gamepad): GamepadMap {
+  const xinputMapping: GamepadMap = {
     buttons: {
       [0]: Buttons.Rotate,
       [1]: Buttons.Rotate,
@@ -119,53 +171,16 @@ export function getDefaultGamepadMap(_gamepad: Gamepad): GamepadMap {
       [3]: 0,
     },
   }
-}
 
-// Private declataions
-export interface GamepadMap {
-  buttons: Record<number, Buttons>;
-  axes: Record<number, DirectMapping | AxisMapping>;
-  axisButtons?: AxisToButtonMapping[];
-  buttonAxes?: ButtonToAxisMapping[];
-  players?: Record<number, number>;
-}
+  gamepad.axes.forEach((value, axis): void => {
+    if (value > 1) { // It's a hat!
+      xinputMapping.axes[axis] = {
+        target: Axis.DpadX,
+        targetY: Axis.DpadY,
+        range: AxisRange.Hat,
+      }
+    }
+  })
 
-export interface KeyboardMap {
-  keys: Record<string, Buttons>;
-  keyAxes: Record<number, KeyToAxisMapping>;
-}
-
-type DirectMapping = Axis;
-
-enum AxisRange {
-  Full,     // Take the value as is
-  Positive, // Only when the value is positive
-  Negative, // Only when the value is negative
-  Hat,      // Transalte Hat direction into X and Y axes
-}
-
-interface AxisMapping {
-  target: Axis;      // The axe to translate into
-  invert?: boolean;  // Invert value sign
-  range?: AxisRange; // How to process the value
-  targetY?: Axis;    // If range == Hat, set the axis for Y values
-}
-
-interface AxisToButtonMapping {
-  axis: Axis;         // The axis to map into a button
-  button: Buttons;    // Which button to map to
-  threshold?: number; // The minimum value before this axe is counted
-  negative?: boolean; // Whether to check on the negative side of the axis
-}
-
-interface ButtonToAxisMapping {
-  button: number;  // The button to map into an axis
-  axis: Axis;      // Which axis to map to
-  factor?: number; // The factor of the value of the button to axis (e.g. -1 to invert)
-}
-
-interface KeyToAxisMapping {
-  axis: Axis;         // Which axis to map the key to
-  factor?: number;    // The factor of the value of the button to axis (e.g. -1 to invert)
-  opposite?: Buttons; // The key that's the opposite
+  return xinputMapping
 }
