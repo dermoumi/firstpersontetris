@@ -3,9 +3,9 @@
 export interface GamepadMap {
   buttons: Record<number, Buttons>;
   axes: Record<number, DirectMapping | AxisMapping>;
-  axisButtons?: AxisToButtonMapping[];
-  buttonAxes?: ButtonToAxisMapping[];
-  players?: Record<number, number>;
+  axisButtons: AxisToButtonMapping[];
+  buttonAxes: ButtonToAxisMapping[];
+  players: Record<number, number>;
 }
 
 export interface KeyboardMap {
@@ -115,7 +115,7 @@ export function getDefaultKeyMap(_player: number, _level3Supported: boolean): Ke
 
 // Default gamepad button mapping
 export function getDefaultGamepadMap(gamepad: Gamepad): GamepadMap {
-  const xinputMapping: GamepadMap = {
+  const mapping: GamepadMap = {
     buttons: {
       [0]: Buttons.Rotate,
       [1]: Buttons.Rotate,
@@ -136,21 +136,46 @@ export function getDefaultGamepadMap(gamepad: Gamepad): GamepadMap {
     },
     axisButtons: [
       {
-        axis: 0,
+        axis: Axis.LeftX,
         button: Buttons.Left,
         negative: true,
         threshold: JoystickThreshold,
-      }, {
-        axis: 0,
+      },
+      {
+        axis: Axis.LeftX,
         button: Buttons.Right,
         threshold: JoystickThreshold,
-      }, {
-        axis: 1,
+      },
+      {
+        axis: Axis.LeftY,
         button: Buttons.Up,
         negative: true,
         threshold: JoystickThreshold,
-      }, {
-        axis: 1,
+      },
+      {
+        axis: Axis.LeftY,
+        button: Buttons.Down,
+        threshold: JoystickThreshold,
+      },
+      {
+        axis: Axis.DpadX,
+        button: Buttons.Left,
+        negative: true,
+        threshold: JoystickThreshold,
+      },
+      {
+        axis: Axis.DpadX,
+        button: Buttons.Right,
+        threshold: JoystickThreshold,
+      },
+      {
+        axis: Axis.DpadY,
+        button: Buttons.Up,
+        negative: true,
+        threshold: JoystickThreshold,
+      },
+      {
+        axis: Axis.DpadY,
         button: Buttons.Down,
         threshold: JoystickThreshold,
       },
@@ -159,7 +184,8 @@ export function getDefaultGamepadMap(gamepad: Gamepad): GamepadMap {
       {
         button: 6,
         axis: Axis.TriggerL,
-      }, {
+      },
+      {
         button: 7,
         axis: Axis.TriggerR,
       },
@@ -172,9 +198,12 @@ export function getDefaultGamepadMap(gamepad: Gamepad): GamepadMap {
     },
   }
 
+  let hasHatLayout = false
+
   gamepad.axes.forEach((value, axis): void => {
     if (value > 1) { // It's a hat!
-      xinputMapping.axes[axis] = {
+      hasHatLayout = true
+      mapping.axes[axis] = {
         target: Axis.DpadX,
         targetY: Axis.DpadY,
         range: AxisRange.Hat,
@@ -182,5 +211,9 @@ export function getDefaultGamepadMap(gamepad: Gamepad): GamepadMap {
     }
   })
 
-  return xinputMapping
+  if (hasHatLayout) {
+    mapping.axisButtons
+  }
+
+  return mapping
 }
