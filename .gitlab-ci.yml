@@ -1,5 +1,8 @@
 image: node:latest
 
+variables:
+  GANALYTICS_ID: ''
+
 stages:
   - check
   - staging
