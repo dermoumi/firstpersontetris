@@ -6,12 +6,20 @@ import SceneStage from 'game/stage/scene'
 import CheckBox from './checkbox'
 import { Buttons } from 'game/config'
 
+import bgmCrisis from 'assets/music/crisis.mp3'
+import bgmType1 from 'assets/music/type1.mp3'
+import bgmType1Fast from 'assets/music/type1fast.mp3'
+import bgmType2 from 'assets/music/type2.mp3'
+import bgmType2Fast from 'assets/music/type2fast.mp3'
+import bgmType3 from 'assets/music/type3.mp3'
+import bgmType3Fast from 'assets/music/type3fast.mp3'
+
 const CONTAINER_WIDTH = 640
 const CONTAINER_HEIGHT = 480
 const MUSIC_TRACKS: [string, string][] = [
-  ['assets/music/type1.mp3', 'assets/music/type1fast.mp3'],
-  ['assets/music/type2.mp3', 'assets/music/type2fast.mp3'],
-  ['assets/music/type3.mp3', 'assets/music/type3fast.mp3'],
+  [bgmType1, bgmType1Fast],
+  [bgmType2, bgmType2Fast],
+  [bgmType3, bgmType3Fast],
 ]
 
 export interface StageData {
@@ -141,7 +149,7 @@ export default class SettingsScene extends SceneBase {
 
       if (this._inCrisis) {
         this.app.sound.stopMusic()
-        this.app.sound.setMusic('assets/music/crisis.mp3', 'assets/music/crisis.mp3')
+        this.app.sound.setMusic(bgmCrisis, bgmCrisis)
         this.app.sound.playSlowMusic()
       } else {
         this._playMusic()
@@ -367,7 +375,7 @@ export default class SettingsScene extends SceneBase {
 
   private _playMusic(index: number = this._selectedMusic): void {
     if (this._inCrisis) {
-      this.app.sound.setMusic('assets/music/crisis.mp3', 'assets/music/crisis.mp3')
+      this.app.sound.setMusic(bgmCrisis, bgmCrisis)
       this.app.sound.playSlowMusic()
       return
     }

@@ -4,6 +4,35 @@ import SettingsScene from 'game/settings/scene'
 import Input from 'game/input'
 import Sound from 'game/sound'
 
+import block1 from 'assets/images/block1.gif'
+import block2 from 'assets/images/block2.gif'
+import stage from 'assets/images/stage.png'
+import stats from 'assets/images/stats.png'
+import arrows from 'assets/images/arrows.png'
+import enter from 'assets/images/enter.png'
+import escape from 'assets/images/escape.png'
+import space from 'assets/images/space.png'
+import room from 'assets/images/room.jpg'
+import screen from 'assets/images/screen.png'
+import checkbox from 'assets/images/checkbox.gif'
+import controller from 'assets/images/controller.png'
+import btnDown from 'assets/images/btn-down.png'
+import btnUp from 'assets/images/btn-up.png'
+import dpad from 'assets/images/dpad.png'
+import dpadUp from 'assets/images/dpad-up.png'
+import dpadDown from 'assets/images/dpad-down.png'
+import dpadLeft from 'assets/images/dpad-left.png'
+import dpadRight from 'assets/images/dpad-right.png'
+import pause from 'assets/images/pause.gif'
+import sfxLevel from 'assets/sounds/level.mp3'
+import sfxLine from 'assets/sounds/line.mp3'
+import sfxOver from 'assets/sounds/over.mp3'
+import sfxRotate from 'assets/sounds/rotate.mp3'
+import sfxTetris from 'assets/sounds/tetris.mp3'
+import sfxUnited from 'assets/sounds/united.mp3'
+import sfxBeep from 'assets/sounds/beep.mp3'
+import sfxPause from 'assets/sounds/pause.mp3'
+
 export interface SizeObject {
   width: number;
   height: number;
@@ -60,36 +89,34 @@ export default class GameApp {
     return new Promise((resolve): void => {
       const loader = Pixi.Loader.shared
 
-      loader.add('block1', 'assets/images/block1.gif')
-        .add('block2', 'assets/images/block2.gif')
-        .add('stage', 'assets/images/stage.png')
-        .add('stats', 'assets/images/stats.png')
-        .add('arrows', 'assets/images/arrows.png')
-        .add('enter', 'assets/images/enter.png')
-        .add('escape', 'assets/images/escape.png')
-        .add('space', 'assets/images/space.png')
-        .add('room', 'assets/images/room.jpg')
-        .add('screen', 'assets/images/screen.png')
-        .add('checkbox', 'assets/images/checkbox.gif')
-
-        .add('controller', 'assets/images/controller.png')
-        .add('btnDown', 'assets/images/btn-down.png')
-        .add('btnUp', 'assets/images/btn-up.png')
-        .add('dpad', 'assets/images/dpad.png')
-        .add('dpadUp', 'assets/images/dpad-up.png')
-        .add('dpadDown', 'assets/images/dpad-down.png')
-        .add('dpadLeft', 'assets/images/dpad-left.png')
-        .add('dpadRight', 'assets/images/dpad-right.png')
-        .add('pause', 'assets/images/pause.gif')
-
-        .add('sfx_level', 'assets/sounds/level.mp3')
-        .add('sfx_line', 'assets/sounds/line.mp3')
-        .add('sfx_over', 'assets/sounds/over.mp3')
-        .add('sfx_rotate', 'assets/sounds/rotate.mp3')
-        .add('sfx_tetris', 'assets/sounds/tetris.mp3')
-        .add('sfx_united', 'assets/sounds/united.mp3')
-        .add('sfx_beep', 'assets/sounds/beep.mp3')
-        .add('sfx_pause', 'assets/sounds/pause.mp3')
+      loader.add('block1', block1)
+        .add('block2', block2)
+        .add('stage', stage)
+        .add('stats', stats)
+        .add('arrows', arrows)
+        .add('enter', enter)
+        .add('escape', escape)
+        .add('space', space)
+        .add('room', room)
+        .add('screen', screen)
+        .add('checkbox', checkbox)
+        .add('controller', controller)
+        .add('btnDown', btnDown)
+        .add('btnUp', btnUp)
+        .add('dpad', dpad)
+        .add('dpadUp', dpadUp)
+        .add('dpadDown', dpadDown)
+        .add('dpadLeft', dpadLeft)
+        .add('dpadRight', dpadRight)
+        .add('pause', pause)
+        .add('sfx_level', sfxLevel)
+        .add('sfx_line', sfxLine)
+        .add('sfx_over', sfxOver)
+        .add('sfx_rotate', sfxRotate)
+        .add('sfx_tetris', sfxTetris)
+        .add('sfx_united', sfxUnited)
+        .add('sfx_beep', sfxBeep)
+        .add('sfx_pause', sfxPause)
 
       loader.load((_loader: Pixi.Loader, resources: ResourceDict): void => {
         GameApp.resources = resources

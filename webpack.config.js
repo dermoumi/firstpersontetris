@@ -23,14 +23,28 @@ module.exports = (env, argv) => {
     // Tell webpack to use typescript loader
     module: {
       rules: [{
-        test: /\.ts$/,
-        use: tsLoader,
+        test: /\.(png|jpg|gif|mp3|woff|woff2)$/i,
         exclude: /node_modules/,
+        use: {
+          loader: 'file-loader',
+          options: {
+            name() {
+              return (argv.mode === 'development')
+                ? '[path][name].[ext]'
+                : 'content/[sha512:hash:base64:7].[ext]'
+            },
+          },
+        },
+      }, {
+        test: /\.ts$/i,
+        exclude: /node_modules/,
+        use: tsLoader,
       }],
     },
-    // Only resolve .ts and .js files
+    // Resolve .ts then .js files when extension is not supplied
+    // Resolve files in 'src' directory
     resolve: {
-      extensions: ['.ts', '.js'],
+      extensions: ['.ts', '.js', '.gif'],
       modules: [path.resolve(__dirname, 'src'), 'node_modules'],
     },
     // Output files as dist/runtime/<module/chunk name>.js
