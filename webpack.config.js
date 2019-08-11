@@ -117,7 +117,7 @@ module.exports = (env, argv) => {
           clientsClaim: true,
           skipWaiting: true,
           globDirectory: './dist',
-          globPatterns: [ '**/*.{js,css,html,gif,png,woff,woff2}' ],
+          globPatterns: [ '**/*.{js,css,html,gif,png,jpg,woff,woff2,mp3}' ],
         }),
       ],
     })

@@ -25,6 +25,7 @@ export default class GameApp {
   public constructor(container: HTMLElement) {
     this.container = container
 
+    Pixi.utils.skipHello()
     this.pixi = new Pixi.Application({
       autoStart: false,
     })

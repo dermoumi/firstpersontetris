@@ -1,3 +1,4 @@
+declare var __DEV__: boolean
 declare class FontFace {
   public constructor(fontFamily: string, fontSource: string);
   public load(): Promise<void>;
@@ -48,4 +49,25 @@ import(/* webpackChunkName: "game" */ 'game/app').then(async (module): Promise<v
   hideSplash()
 })
 
-// TODO: Implement service workers
+if ('serviceWorker' in navigator) {
+  if (__DEV__) {
+    // DEV mode, clear all service workers and reload
+    navigator.serviceWorker.getRegistrations().then((registrations): void => {
+      for (const registration of registrations) {
+        registration.unregister()
+      }
+      if (registrations.length > 0) {
+        window.location.reload()
+      }
+    })
+  } else {
+    // Register the service worker
+    window.addEventListener('load', (): void => {
+      navigator.serviceWorker.register('/service-worker.js').then((registration): void => {
+        console.info('SW registered: ', registration)
+      }).catch((registrationError): void => {
+        console.error('SW registration failed: ', registrationError)
+      })
+    })
+  }
+}
