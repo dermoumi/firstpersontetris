@@ -49,7 +49,7 @@ module.exports = (_, argv) => {
         test: /\.css$/i,
         use: useCss,
       }, {
-        test: /\.(ico|svg|png|jpg|gif|mp3|woff|woff2)$/i,
+        test: /\.(ico|webp|svg|png|jpg|gif|mp3|woff|woff2)$/i,
         use: fileLoader,
       }, {
         test: /\.ts$/i,
@@ -131,7 +131,7 @@ module.exports = (_, argv) => {
             parallel: true,
             terserOptions: {
               compress: {
-                // 'drop_console': true,
+                'drop_console': true,
               },
               output: {
                 comments: false,

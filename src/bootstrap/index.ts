@@ -69,7 +69,7 @@ import(/* webpackChunkName: "game" */ 'game/app').then(async (module): Promise<v
     // If FontFace API is available, make sure the fonts are loaded properly
     const fonts = [{
       family: 'pixel-emulator',
-      source: `url(${pixelEmulatorWoff}) format('woff'), url(${pixelEmulatorWoff2}) format('woff2')`,
+      source: `url(${pixelEmulatorWoff2}) format('woff2'), url(${pixelEmulatorWoff}) format('woff')`,
     }]
 
     try {

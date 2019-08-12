@@ -6,10 +6,14 @@ import Sound from 'game/sound'
 
 import stage from 'assets/images/stage.png'
 import room from 'assets/images/room.jpg'
+import roomWebp from 'assets/images/room.webp'
 import screen from 'assets/images/screen.png'
-import onscreencontrols from 'assets/images/onscreencontrols.png'
+import screenWebp from 'assets/images/screen.webp'
+import osControls from 'assets/images/onscreencontrols.png'
+import osControlsWebp from 'assets/images/onscreencontrols.webp'
 import ui from 'assets/images/ui.png'
 import sfxSprites from 'assets/sounds/sfx.mp3'
+import { isWebpSupported } from './utils'
 
 export interface SizeObject {
   width: number;
@@ -64,23 +68,33 @@ export default class GameApp {
   }
 
   public async preload(): Promise<void> {
+    const webpSupported = await isWebpSupported()
     return new Promise((resolve): void => {
       const loader = Pixi.Loader.shared
 
       loader.add('stage', stage)
-        .add('room', room)
-        .add('screen', screen)
-        .add('onScreenControls', onscreencontrols)
-        .add('ui', ui)
         .add('sfxSprites', sfxSprites)
+        .add('ui', ui)
+
+      if (webpSupported) {
+        loader.add('room', roomWebp)
+          .add('screen', screenWebp)
+          .add('onScreenControls', osControlsWebp)
+      } else {
+        loader.add('room', room)
+          .add('screen', screen)
+          .add('onScreenControls', osControls)
+      }
 
       loader.load((_loader: Pixi.Loader, resources: ResourceDict): void => {
         GameApp.resources = resources
-        resolve()
 
-        resources.stage.texture.baseTexture.scaleMode = Pixi.SCALE_MODES.NEAREST
-        resources.ui.texture.baseTexture.scaleMode = Pixi.SCALE_MODES.NEAREST
+        // Set a couple of textures up with NEAREST filtering
+        ;['stage', 'ui'].forEach((res): void => {
+          resources[res].texture.baseTexture.scaleMode = Pixi.SCALE_MODES.NEAREST
+        })
 
+        // Setup sound sprites
         resources.sfxSprites.sound.addSprites({
           beep:   { start: 0,      end: 1.123 },
           level:  { start: 1.123,  end: 3.161 },
@@ -91,6 +105,8 @@ export default class GameApp {
           tetris: { start: 9.875,  end: 11.572 },
           united: { start: 11.572, end: 12.774 },
         })
+
+        resolve()
       })
     })
   }
