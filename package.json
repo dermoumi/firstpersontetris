@@ -8,7 +8,7 @@
     "build": "webpack -p",
     "start": "ws -z -p 8080 -d dist",
     "dev": "webpack-dev-server --mode development --host 0.0.0.0",
-    "lint": "eslint --ext .ts src/**"
+    "lint": "eslint --ext .ts src/bootstrap/** src/game/**"
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^1.13.0",
