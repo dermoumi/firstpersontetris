@@ -168,7 +168,7 @@ export function getDefaultGamepadMap(gamepad: Gamepad): GamepadMap {
   let hasHatLayout = false
 
   gamepad.axes.forEach((value, axis): void => {
-    if (value > 1) { // It's a hat!
+    if (value > 1 || value < -1) { // It's a hat!
       hasHatLayout = true
       mapping.axes[axis] = {
         target: Axis.DpadX,

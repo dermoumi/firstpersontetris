@@ -73,7 +73,7 @@ export default class GamepadHandler implements Device {
       if (target instanceof Object) {
         const mapping = target as AxisMapping
         if (mapping.range === AxisRange.Hat && mapping.targetY) {
-          if (roundedValue > 1) {
+          if (roundedValue > 1 || roundedValue < -1) {
             player.axes[mapping.target] = 0
             player.axes[mapping.targetY] = 0
           } else {
