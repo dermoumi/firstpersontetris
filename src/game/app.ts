@@ -24,14 +24,7 @@ import dpadDown from 'assets/images/dpad-down.png'
 import dpadLeft from 'assets/images/dpad-left.png'
 import dpadRight from 'assets/images/dpad-right.png'
 import pause from 'assets/images/pause.gif'
-import sfxLevel from 'assets/sounds/level.mp3'
-import sfxLine from 'assets/sounds/line.mp3'
-import sfxOver from 'assets/sounds/over.mp3'
-import sfxRotate from 'assets/sounds/rotate.mp3'
-import sfxTetris from 'assets/sounds/tetris.mp3'
-import sfxUnited from 'assets/sounds/united.mp3'
-import sfxBeep from 'assets/sounds/beep.mp3'
-import sfxPause from 'assets/sounds/pause.mp3'
+import sfxSprites from 'assets/sounds/sfx.mp3'
 
 export interface SizeObject {
   width: number;
@@ -109,14 +102,7 @@ export default class GameApp {
         .add('dpadLeft', dpadLeft)
         .add('dpadRight', dpadRight)
         .add('pause', pause)
-        .add('sfx_level', sfxLevel)
-        .add('sfx_line', sfxLine)
-        .add('sfx_over', sfxOver)
-        .add('sfx_rotate', sfxRotate)
-        .add('sfx_tetris', sfxTetris)
-        .add('sfx_united', sfxUnited)
-        .add('sfx_beep', sfxBeep)
-        .add('sfx_pause', sfxPause)
+        .add('sfxSprites', sfxSprites)
 
       loader.load((_loader: Pixi.Loader, resources: ResourceDict): void => {
         GameApp.resources = resources
@@ -132,6 +118,17 @@ export default class GameApp {
         resources.space.texture.baseTexture.scaleMode = Pixi.SCALE_MODES.NEAREST
         resources.checkbox.texture.baseTexture.scaleMode = Pixi.SCALE_MODES.NEAREST
         resources.pause.texture.baseTexture.scaleMode = Pixi.SCALE_MODES.NEAREST
+
+        resources.sfxSprites.sound.addSprites({
+          beep: { start: 0, end: 1.123 },
+          level: { start: 1.123, end: 3.161 },
+          line: { start: 3.161, end: 4.989 },
+          over: { start: 4.989, end: 7.131 },
+          pause: { start: 7.131, end: 8.542 },
+          rotate: { start: 8.542, end: 9.874 },
+          tetris: { start: 9.875, end: 11.572 },
+          united: { start: 11.572, end: 12.774 },
+        })
       })
     })
   }

@@ -381,9 +381,11 @@ export default class SettingsScene extends SceneBase {
     }
 
     const sound = this.app.sound
-    sound.stopMusic()
 
-    if (index >= 3) return
+    if (index >= 3) {
+      sound.removeMusic()
+      return
+    }
 
     const [ music, musicFast ] = MUSIC_TRACKS[index]
     sound.setMusic(music, musicFast)
