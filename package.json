@@ -5,16 +5,19 @@
   "author": "Dermoumi S. <hi@sdrm.me>",
   "license": "WTFPL",
   "scripts": {
-    "build": "webpack",
+    "build": "webpack -p",
     "start": "ws -z -p 8080 -d dist",
     "dev": "webpack-dev-server --mode development --host 0.0.0.0",
-    "lint": "eslint --ext .ts src/**"
+    "lint": "eslint --ext .ts src/bootstrap/** src/game/**"
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^1.13.0",
     "@typescript-eslint/parser": "^1.13.0",
     "clean-webpack-plugin": "^3.0.0",
+    "css-loader": "^3.2.0",
     "eslint": "^6.1.0",
+    "file-loader": "^4.2.0",
+    "html-webpack-plugin": "^3.2.0",
     "pixi-sound": "^3.0.3",
     "pixi.js": "^5.1.0",
     "terser-webpack-plugin": "^1.3.0",

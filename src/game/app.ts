@@ -4,6 +4,17 @@ import SettingsScene from 'game/settings/scene'
 import Input from 'game/input'
 import Sound from 'game/sound'
 
+import stage from 'assets/images/stage.png'
+import room from 'assets/images/room.jpg'
+import roomWebp from 'assets/images/room.webp'
+import screen from 'assets/images/screen.png'
+import screenWebp from 'assets/images/screen.webp'
+import osControls from 'assets/images/onscreencontrols.png'
+import osControlsWebp from 'assets/images/onscreencontrols.webp'
+import ui from 'assets/images/ui.png'
+import sfxSprites from 'assets/sounds/sfx.mp3'
+import { isWebpSupported } from './utils'
+
 export interface SizeObject {
   width: number;
   height: number;
@@ -25,6 +36,7 @@ export default class GameApp {
   public constructor(container: HTMLElement) {
     this.container = container
 
+    Pixi.utils.skipHello()
     this.pixi = new Pixi.Application({
       autoStart: false,
     })
@@ -56,54 +68,45 @@ export default class GameApp {
   }
 
   public async preload(): Promise<void> {
+    const webpSupported = await isWebpSupported()
     return new Promise((resolve): void => {
       const loader = Pixi.Loader.shared
 
-      loader.add('block1', 'assets/images/block1.gif')
-        .add('block2', 'assets/images/block2.gif')
-        .add('stage', 'assets/images/stage.png')
-        .add('stats', 'assets/images/stats.png')
-        .add('arrows', 'assets/images/arrows.png')
-        .add('enter', 'assets/images/enter.png')
-        .add('escape', 'assets/images/escape.png')
-        .add('space', 'assets/images/space.png')
-        .add('room', 'assets/images/room.jpg')
-        .add('screen', 'assets/images/screen.png')
-        .add('checkbox', 'assets/images/checkbox.gif')
+      loader.add('stage', stage)
+        .add('sfxSprites', sfxSprites)
+        .add('ui', ui)
 
-        .add('controller', 'assets/images/controller.png')
-        .add('btnDown', 'assets/images/btn-down.png')
-        .add('btnUp', 'assets/images/btn-up.png')
-        .add('dpad', 'assets/images/dpad.png')
-        .add('dpadUp', 'assets/images/dpad-up.png')
-        .add('dpadDown', 'assets/images/dpad-down.png')
-        .add('dpadLeft', 'assets/images/dpad-left.png')
-        .add('dpadRight', 'assets/images/dpad-right.png')
-        .add('pause', 'assets/images/pause.gif')
-
-        .add('sfx_level', 'assets/sounds/level.mp3')
-        .add('sfx_line', 'assets/sounds/line.mp3')
-        .add('sfx_over', 'assets/sounds/over.mp3')
-        .add('sfx_rotate', 'assets/sounds/rotate.mp3')
-        .add('sfx_tetris', 'assets/sounds/tetris.mp3')
-        .add('sfx_united', 'assets/sounds/united.mp3')
-        .add('sfx_beep', 'assets/sounds/beep.mp3')
-        .add('sfx_pause', 'assets/sounds/pause.mp3')
+      if (webpSupported) {
+        loader.add('room', roomWebp)
+          .add('screen', screenWebp)
+          .add('onScreenControls', osControlsWebp)
+      } else {
+        loader.add('room', room)
+          .add('screen', screen)
+          .add('onScreenControls', osControls)
+      }
 
       loader.load((_loader: Pixi.Loader, resources: ResourceDict): void => {
         GameApp.resources = resources
-        resolve()
 
-        resources.block1.texture.baseTexture.scaleMode = Pixi.SCALE_MODES.NEAREST
-        resources.block2.texture.baseTexture.scaleMode = Pixi.SCALE_MODES.NEAREST
-        resources.stage.texture.baseTexture.scaleMode = Pixi.SCALE_MODES.NEAREST
-        resources.stats.texture.baseTexture.scaleMode = Pixi.SCALE_MODES.NEAREST
-        resources.arrows.texture.baseTexture.scaleMode = Pixi.SCALE_MODES.NEAREST
-        resources.enter.texture.baseTexture.scaleMode = Pixi.SCALE_MODES.NEAREST
-        resources.escape.texture.baseTexture.scaleMode = Pixi.SCALE_MODES.NEAREST
-        resources.space.texture.baseTexture.scaleMode = Pixi.SCALE_MODES.NEAREST
-        resources.checkbox.texture.baseTexture.scaleMode = Pixi.SCALE_MODES.NEAREST
-        resources.pause.texture.baseTexture.scaleMode = Pixi.SCALE_MODES.NEAREST
+        // Set a couple of textures up with NEAREST filtering
+        ;['stage', 'ui'].forEach((res): void => {
+          resources[res].texture.baseTexture.scaleMode = Pixi.SCALE_MODES.NEAREST
+        })
+
+        // Setup sound sprites
+        resources.sfxSprites.sound.addSprites({
+          beep:   { start: 0,      end: 1.123 },
+          level:  { start: 1.123,  end: 3.161 },
+          line:   { start: 3.161,  end: 4.989 },
+          over:   { start: 4.989,  end: 7.131 },
+          pause:  { start: 7.131,  end: 8.542 },
+          rotate: { start: 8.542,  end: 9.874 },
+          tetris: { start: 9.875,  end: 11.572 },
+          united: { start: 11.572, end: 12.774 },
+        })
+
+        resolve()
       })
     })
   }

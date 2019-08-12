@@ -18,6 +18,13 @@ export default class Sound {
     this._musicFast.volume = 0.5
   }
 
+  public removeMusic(): void {
+    this.stopMusic()
+
+    this._music = undefined
+    this._musicFast = undefined
+  }
+
   public playSlowMusic(): void {
     if (!this._music) return
     const promise = this._music.play()
@@ -32,8 +39,15 @@ export default class Sound {
   }
 
   public stopMusic(): void {
-    this._music && this._music.pause()
-    this._musicFast && this._musicFast.pause()
+    if (this._music) {
+      this._music.pause()
+      this._music.currentTime = 0
+    }
+
+    if (this._musicFast) {
+      this._musicFast.pause()
+      this._musicFast.currentTime = 0
+    }
   }
 
   public setSfxEnabled(enabled: boolean): void {
@@ -44,9 +58,9 @@ export default class Sound {
     return this._sfxEnabled
   }
 
-  public playSfx(name: string): void {
+  public playSfx(name?: string, res: string = 'sfxSprites'): void {
     if (!this._sfxEnabled) return
-    GameApp.resources[`sfx_${name}`].sound.play()
+    GameApp.resources[res].sound.play(name)
   }
 
   public isMusicPlaying(): boolean {

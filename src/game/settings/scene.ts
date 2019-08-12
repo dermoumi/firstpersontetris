@@ -6,12 +6,21 @@ import SceneStage from 'game/stage/scene'
 import CheckBox from './checkbox'
 import { Buttons } from 'game/config'
 
+import bgmCrisis from 'assets/music/crisis.mp3'
+import bgmType1 from 'assets/music/type1.mp3'
+import bgmType1Fast from 'assets/music/type1fast.mp3'
+import bgmType2 from 'assets/music/type2.mp3'
+import bgmType2Fast from 'assets/music/type2fast.mp3'
+import bgmType3 from 'assets/music/type3.mp3'
+import bgmType3Fast from 'assets/music/type3fast.mp3'
+import SubSprite from 'game/utils/subsprite'
+
 const CONTAINER_WIDTH = 640
 const CONTAINER_HEIGHT = 480
 const MUSIC_TRACKS: [string, string][] = [
-  ['assets/music/type1.mp3', 'assets/music/type1fast.mp3'],
-  ['assets/music/type2.mp3', 'assets/music/type2fast.mp3'],
-  ['assets/music/type3.mp3', 'assets/music/type3fast.mp3'],
+  [bgmType1, bgmType1Fast],
+  [bgmType2, bgmType2Fast],
+  [bgmType3, bgmType3Fast],
 ]
 
 export interface StageData {
@@ -141,7 +150,7 @@ export default class SettingsScene extends SceneBase {
 
       if (this._inCrisis) {
         this.app.sound.stopMusic()
-        this.app.sound.setMusic('assets/music/crisis.mp3', 'assets/music/crisis.mp3')
+        this.app.sound.setMusic(bgmCrisis, bgmCrisis)
         this.app.sound.playSlowMusic()
       } else {
         this._playMusic()
@@ -255,7 +264,9 @@ export default class SettingsScene extends SceneBase {
       fill: 0x7C7C7C,
     }
 
-    const arrows = Pixi.Sprite.from(GameApp.resources.arrows.texture)
+    const arrows = new SubSprite(GameApp.resources.ui.texture, new Pixi.Rectangle(0, 0, 51, 33))
+    arrows.scale.x = 2
+    arrows.scale.y = 2
     arrows.position.x = 24
     arrows.position.y = 64
     this._container.addChild(arrows)
@@ -265,7 +276,9 @@ export default class SettingsScene extends SceneBase {
     arrowsLabel.position.y = 136
     this._container.addChild(arrowsLabel)
 
-    const space = Pixi.Sprite.from(GameApp.resources.space.texture)
+    const space = new SubSprite(GameApp.resources.ui.texture, new Pixi.Rectangle(52, 38, 75, 15))
+    space.scale.x = 2
+    space.scale.y = 2
     space.position.x = 181
     space.position.y = 100
     this._container.addChild(space)
@@ -275,7 +288,9 @@ export default class SettingsScene extends SceneBase {
     spaceLabel.position.y = 136
     this._container.addChild(spaceLabel)
 
-    const enter = Pixi.Sprite.from(GameApp.resources.enter.texture)
+    const enter = new SubSprite(GameApp.resources.ui.texture, new Pixi.Rectangle(52, 0, 53, 18))
+    enter.scale.x = 2
+    enter.scale.y = 2
     enter.position.x = 386
     enter.position.y = 94
     this._container.addChild(enter)
@@ -285,7 +300,9 @@ export default class SettingsScene extends SceneBase {
     enterLabel.position.y = 136
     this._container.addChild(enterLabel)
 
-    const escape = Pixi.Sprite.from(GameApp.resources.escape.texture)
+    const escape = new SubSprite(GameApp.resources.ui.texture, new Pixi.Rectangle(52, 19, 35, 18))
+    escape.scale.x = 2
+    escape.scale.y = 2
     escape.position.x = 547
     escape.position.y = 94
     this._container.addChild(escape)
@@ -367,15 +384,17 @@ export default class SettingsScene extends SceneBase {
 
   private _playMusic(index: number = this._selectedMusic): void {
     if (this._inCrisis) {
-      this.app.sound.setMusic('assets/music/crisis.mp3', 'assets/music/crisis.mp3')
+      this.app.sound.setMusic(bgmCrisis, bgmCrisis)
       this.app.sound.playSlowMusic()
       return
     }
 
     const sound = this.app.sound
-    sound.stopMusic()
 
-    if (index >= 3) return
+    if (index >= 3) {
+      sound.removeMusic()
+      return
+    }
 
     const [ music, musicFast ] = MUSIC_TRACKS[index]
     sound.setMusic(music, musicFast)

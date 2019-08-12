@@ -1,3 +1,5 @@
+declare var __DEV__: boolean
+
 declare class FontFace {
   public constructor(fontFamily: string, fontSource: string);
   public load(): Promise<void>;
@@ -10,13 +12,46 @@ function hideSplash(): void {
   if (splash) document.body.removeChild(splash)
 }
 
+async function registerSW(): Promise<void> {
+  if (__DEV__ || navigator.serviceWorker === undefined) return
+
+  const onSwUpdated = (): void => {
+    // TODO: Show as a notification with DOM
+    console.info('Content updated!')
+  }
+
+  const onSwCached = (): void => {
+    // TODO: Show as a notification with DOM
+    console.info('Content cached for offline use!')
+  }
+
+  // Register the service worker
+  try {
+    const registration = await navigator.serviceWorker.register('../service-worker.js')
+    registration.onupdatefound = (): void => {
+      const installingWorker = registration.installing
+      if (!installingWorker) return
+      installingWorker.onstatechange = (): void => {
+        if (installingWorker.state === 'installed') {
+          if (navigator.serviceWorker.controller) {
+            onSwUpdated()
+          } else {
+            onSwCached()
+          }
+        }
+      }
+    }
+  } catch (e) {
+    // Nothing to do
+  }
+}
+
 // Lazily load the game app
 import(/* webpackChunkName: "game" */ 'game/app').then(async (module): Promise<void> => {
   // Make sure the container element exists
   const container = document.getElementById('game')
   if (!container) {
-    // TODO: Show this as an alert
-    console.error('Could not find container element')
+    alert('Could not find container element!')
     return
   }
 
@@ -24,13 +59,17 @@ import(/* webpackChunkName: "game" */ 'game/app').then(async (module): Promise<v
   const GameApp = module.default
   const app = new GameApp(container)
 
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const pixelEmulatorWoff = require('assets/fonts/pixel-emulator.woff')
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const pixelEmulatorWoff2 = require('assets/fonts/pixel-emulator.woff2')
+
   // Make sure the required fonts are available (through FontFace api if available)
   if ('FontFace' in window) {
     // If FontFace API is available, make sure the fonts are loaded properly
     const fonts = [{
       family: 'pixel-emulator',
-      source: "url('assets/fonts/pixel-emulator.woff2') format('woff2'), " +
-              "url('assets/fonts/pixel-emulator.woff') format('woff')",
+      source: `url(${pixelEmulatorWoff2}) format('woff2'), url(${pixelEmulatorWoff}) format('woff')`,
     }]
 
     try {
@@ -46,6 +85,7 @@ import(/* webpackChunkName: "game" */ 'game/app').then(async (module): Promise<v
   await app.preload()
   app.run()
   hideSplash()
+  registerSW()
 })
 
-// TODO: Implement service workers
+

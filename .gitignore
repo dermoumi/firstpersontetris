@@ -1,8 +1,5 @@
 .DS_Store
 node_modules
-dist/*
-!dist/assets
-!dist/index.html
-!dist/manifest.json
+dist
 
 yarn-error.log

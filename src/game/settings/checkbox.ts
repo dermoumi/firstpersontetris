@@ -1,9 +1,10 @@
 import * as Pixi from 'pixi.js'
 import GameApp from 'game/app'
+import SubSprite from 'game/utils/subsprite'
 
 export default class CheckBox extends Pixi.Container {
   private _checkFiller = new Pixi.Graphics()
-  private _checkSquare: Pixi.Sprite
+  private _checkSquare: SubSprite
   private _label: Pixi.Text
   private _checked: boolean
 
@@ -18,7 +19,9 @@ export default class CheckBox extends Pixi.Container {
     this._checkFiller.visible = checked
     this.addChild(this._checkFiller)
 
-    this._checkSquare = Pixi.Sprite.from(GameApp.resources.checkbox.texture)
+    this._checkSquare = new SubSprite(GameApp.resources.ui.texture, new Pixi.Rectangle(0, 34, 15, 15))
+    this._checkSquare.scale.x = 2
+    this._checkSquare.scale.y = 2
     this.addChild(this._checkSquare)
 
     this._label = new Pixi.Text(labelText, {
