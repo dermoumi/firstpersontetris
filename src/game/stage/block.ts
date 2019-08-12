@@ -1,5 +1,6 @@
 import * as Pixi from 'pixi.js'
 import Game from 'game/app'
+import SubSprite from 'game/utils/subsprite'
 
 export const BLOCK_SIZE = 16
 export const BLOCK_SPACING = 0
@@ -9,9 +10,9 @@ export enum BlockType {
   Block2,
 }
 
-const BLOCK_TYPE: Record<BlockType, string> = {
-  [BlockType.Block1]: 'block1',
-  [BlockType.Block2]: 'block2',
+const BLOCK_TYPE: Record<BlockType, Pixi.Rectangle> = {
+  [BlockType.Block1]: new Pixi.Rectangle(9, 225, 8, 8),
+  [BlockType.Block2]: new Pixi.Rectangle(0, 225, 8, 8),
 }
 
 export default class Block extends Pixi.Container {
@@ -24,7 +25,9 @@ export default class Block extends Pixi.Container {
     this.addChild(filling)
 
     const blockType = BLOCK_TYPE[type]
-    const sprite = Pixi.Sprite.from(Game.resources[blockType].texture)
+    const sprite = new SubSprite(Game.resources.stage.texture, blockType)
+    sprite.scale.x = 2
+    sprite.scale.y = 2
     this.addChild(sprite)
   }
 }

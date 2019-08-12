@@ -8,6 +8,7 @@ import Block, { BlockType, BLOCK_SIZE } from './block'
 import { COLOR_TABLE, SCORE_TABLE, STEP_TIME_TABLE } from './constants'
 import SettingsScene, { StageData } from 'game/settings/scene'
 import { Buttons } from 'game/config'
+import SubSprite from 'game/utils/subsprite'
 
 const GRID_SCREEN_X = 192
 const GRID_SCREEN_Y = 80
@@ -108,7 +109,7 @@ export default class StageScene extends SceneBase {
   private _flicker = new Pixi.Graphics()
   private _scanLines = new Pixi.Graphics()
 
-  private _screenUi: Pixi.Sprite
+  private _screenUi: SubSprite
   private _roomBg: Pixi.Sprite
   private _screenOverlay: Pixi.Sprite
   private _screenUiValues = new Pixi.Container()
@@ -137,7 +138,6 @@ export default class StageScene extends SceneBase {
   private _touchController!: Pixi.Sprite
   private _touchDpad = new Pixi.Container()
   private _touchButtons = new Pixi.Container()
-  private _touchPause!: Pixi.Sprite
 
   private PRESS_DIR: Record<number, Function[]> = {
     [Buttons.Left]: [
@@ -224,22 +224,24 @@ export default class StageScene extends SceneBase {
     this._completeRowsContainer.position.y = GRID_SCREEN_Y
     this._screen.addChild(this._completeRowsContainer)
 
-    const stageTexture = GameApp.resources.stage.texture
+    const stageBgRect = new Pixi.Rectangle(0, 0, 256, 224)
 
-    this._screenUi = Pixi.Sprite.from(stageTexture)
+    this._screenUi = new SubSprite(GameApp.resources.stage.texture, stageBgRect)
+    this._screenUi.scale.x = 2
+    this._screenUi.scale.y = 2
     this._screenUi.zIndex = 100
     this._screen.addChild(this._screenUi)
 
     this._flicker.alpha = 0.05
     this._flicker.zIndex = 120
     this._flicker.beginFill(0x000000)
-    this._flicker.drawRect(0, 0, stageTexture.width, stageTexture.height)
+    this._flicker.drawRect(0, 0, 2 * stageBgRect.width, 2 * stageBgRect.height)
     this._screen.addChild(this._flicker)
 
     this._scanLines.alpha = 0.15
     this._scanLines.zIndex = 125
     this._scanLines.beginFill(0x000000)
-    this._scanLines.drawRect(0, 0, stageTexture.width, 176)
+    this._scanLines.drawRect(0, 0, 2 * stageBgRect.width, 176)
     this._screen.addChild(this._scanLines)
 
     this._levelUi = this._createUiText(`0${this._level}`.substr(-2), 416, 314)
@@ -271,8 +273,8 @@ export default class StageScene extends SceneBase {
 
     this._screen.position.x = 740
     this._screen.position.y = 768
-    this._screen.scale.x = 425 / stageTexture.width
-    this._screen.scale.y = 372 / stageTexture.height
+    this._screen.scale.x = 425 / (stageBgRect.width * 2)
+    this._screen.scale.y = 372 / (stageBgRect.height * 2)
     this._room.addChild(this._screen)
 
     this._screenOverlay = Pixi.Sprite.from(GameApp.resources.screen.texture)
@@ -327,11 +329,11 @@ export default class StageScene extends SceneBase {
     // Update the statistics pieces color
     this._statsPiecesUi.removeChildren()
 
-    const piecesOverlayTexture = GameApp.resources.stats.texture
+    const statsRect = new Pixi.Rectangle(24, 80, 24, 112)
 
     const colorLayer = new Pixi.Graphics()
     colorLayer.beginFill(color1)
-    colorLayer.drawRect(0, 0, piecesOverlayTexture.width, piecesOverlayTexture.height)
+    colorLayer.drawRect(0, 0, statsRect.width * 2, statsRect.height * 2)
     colorLayer.endFill()
     colorLayer.beginFill(color2)
     colorLayer.drawRect(2, 72, 38, 26)
@@ -339,7 +341,9 @@ export default class StageScene extends SceneBase {
     colorLayer.endFill()
     this._statsPiecesUi.addChild(colorLayer)
 
-    const piecesOverlay = Pixi.Sprite.from(piecesOverlayTexture)
+    const piecesOverlay = new SubSprite(GameApp.resources.stage.texture, statsRect)
+    piecesOverlay.scale.x = 2
+    piecesOverlay.scale.y = 2
     this._statsPiecesUi.addChild(piecesOverlay)
   }
 
@@ -1181,8 +1185,12 @@ export default class StageScene extends SceneBase {
   }
 
   private _setupTouchControls(): void {
+    const onScreenControlsTexture = GameApp.resources.onScreenControls.texture
+
     // Pause button
-    const pauseBtn = Pixi.Sprite.from(GameApp.resources.pause.texture)
+    const pauseBtn = new SubSprite(GameApp.resources.ui.texture, new Pixi.Rectangle(16, 34, 14, 14))
+    pauseBtn.scale.x = 2
+    pauseBtn.scale.y = 2
     pauseBtn.position.x = 16
     pauseBtn.position.y = 16
     pauseBtn.interactive = true
@@ -1191,54 +1199,45 @@ export default class StageScene extends SceneBase {
     })
     this.stage.addChild(pauseBtn)
 
-    // Gamepad illustration
-    const controllerTexture = GameApp.resources.controller.texture
-    this._touchController = Pixi.Sprite.from(GameApp.resources.controller.texture)
-    this._touchController.pivot.x = controllerTexture.width / 2
-    this._touchController.pivot.y = controllerTexture.height
-    // this._touchContainer.addChild(this._touchController)
-
     // Right buttons
     this._touchContainer.addChild(this._touchButtons)
-    const btnUpTexture = GameApp.resources.btnUp.texture
-    const btnDownTexture = GameApp.resources.btnDown.texture
+    const btnUpRect = new Pixi.Rectangle(213, 0, 173, 175)
+    const btnDownRect = new Pixi.Rectangle(391, 0, 173, 175)
 
     // Rotate button
-    const btnRotate = Pixi.Sprite.from(btnUpTexture)
-    btnRotate.pivot.x = btnUpTexture.width
-    btnRotate.pivot.y = btnUpTexture.height
-    btnRotate.width = 110
-    btnRotate.height = 110
+    const btnRotate = new SubSprite(onScreenControlsTexture, btnUpRect)
+    btnRotate.pivot.x = btnUpRect.width
+    btnRotate.pivot.y = btnUpRect.height
+    btnRotate.setSize(110, 110)
     btnRotate.interactive = true
     btnRotate.on('touchstart', (): void => {
-      btnRotate.texture = btnDownTexture
+      btnRotate.setSubRect(btnDownRect)
       if (this._state === StageState.Idle) {
         this._rotate()
       }
     })
     const btnRotateTouchEnd = (): void => {
-      btnRotate.texture = btnUpTexture
+      btnRotate.setSubRect(btnUpRect)
     }
     btnRotate.on('touchend', btnRotateTouchEnd)
     btnRotate.on('touchendoutside', btnRotateTouchEnd)
     this._touchButtons.addChild(btnRotate)
 
     // Drop button
-    const btnDrop = Pixi.Sprite.from(btnUpTexture)
-    btnDrop.pivot.x = btnUpTexture.width
-    btnDrop.pivot.y = btnUpTexture.height - 30
-    btnDrop.position.x = -btnRotate.width
-    btnDrop.width = 60
-    btnDrop.height = 60
+    const btnDrop = new SubSprite(onScreenControlsTexture, btnUpRect)
+    btnDrop.pivot.x = btnUpRect.width
+    btnDrop.pivot.y = btnUpRect.height - 30
+    btnDrop.position.x = -110
+    btnDrop.setSize(60, 60)
     btnDrop.interactive = true
     btnDrop.on('touchstart', (): void => {
-      btnDrop.texture = btnDownTexture
+      btnDrop.setSubRect(btnDownRect)
       if (this._state === StageState.Idle) {
         this._hardDrop()
       }
     })
     const btnDropTouchEnd = (): void => {
-      btnDrop.texture = btnUpTexture
+      btnDrop.setSubRect(btnUpRect)
     }
     btnDrop.on('touchend', btnDropTouchEnd)
     btnDrop.on('touchendoutside', btnDropTouchEnd)
@@ -1248,16 +1247,16 @@ export default class StageScene extends SceneBase {
     this._touchContainer.addChild(this._touchDpad)
 
     // Neutral dpad
-    const dpadTexture = GameApp.resources.dpad.texture
-    const dpadUpTexture = GameApp.resources.dpadUp.texture
-    const dpadDownTexture = GameApp.resources.dpadDown.texture
-    const dpadLeftTexture = GameApp.resources.dpadLeft.texture
-    const dpadRightTexture = GameApp.resources.dpadRight.texture
+    const dpadRect = new Pixi.Rectangle(0, 0, 208, 206)
+    const dpadDownRect = new Pixi.Rectangle(0, 211, 208, 206)
+    const dpadUpRect = new Pixi.Rectangle(213, 211, 208, 206)
+    const dpadRightRect = new Pixi.Rectangle(426, 211, 208, 206)
+    const dpadLeftRect = new Pixi.Rectangle(639, 211, 208, 206)
+    let dpadDir: Buttons | null = null
 
-    const dpad = Pixi.Sprite.from(dpadTexture)
-    dpad.pivot.y = dpadTexture.height - 30
-    dpad.width = 180
-    dpad.height = 180
+    const dpad = new SubSprite(onScreenControlsTexture, dpadRect)
+    dpad.pivot.y = dpadRect.height - 30
+    dpad.setSize(180, 180)
     this._touchDpad.addChild(dpad)
 
     // Dpad up
@@ -1267,16 +1266,18 @@ export default class StageScene extends SceneBase {
     dpadUp.hitArea = new Pixi.Rectangle(0, 0, 80, 80)
     dpadUp.interactive = true
     dpadUp.on('touchstart', (): void => {
-      dpad.texture = dpadUpTexture
+      dpad.setSubRect(dpadUpRect)
+      dpadDir = Buttons.Up
       if (this._state === StageState.Idle) {
         this._pressAction(Buttons.Up)
       }
     })
     const dpadUpTouchEnd = (): void => {
-      if (dpad.texture === dpadUpTexture) {
-        dpad.texture = dpadTexture
-      }
       this._releaseAction(Buttons.Up)
+      if (dpadDir === Buttons.Up) {
+        dpad.setSubRect(dpadRect)
+        dpadDir = null
+      }
     }
     dpadUp.on('touchend', dpadUpTouchEnd)
     dpadUp.on('touchendoutside', dpadUpTouchEnd)
@@ -1289,16 +1290,18 @@ export default class StageScene extends SceneBase {
     dpadDown.hitArea = new Pixi.Rectangle(0, 0, 80, 80)
     dpadDown.interactive = true
     dpadDown.on('touchstart', (): void => {
-      dpad.texture = dpadDownTexture
+      dpad.setSubRect(dpadDownRect)
+      dpadDir = Buttons.Down
       if (this._state === StageState.Idle) {
         this._pressAction(Buttons.Down)
       }
     })
     const dpadDownTouchEnd = (): void => {
-      if (dpad.texture === dpadDownTexture) {
-        dpad.texture = dpadTexture
-      }
       this._releaseAction(Buttons.Down)
+      if (dpadDir === Buttons.Down) {
+        dpad.setSubRect(dpadRect)
+        dpadDir = null
+      }
     }
     dpadDown.on('touchend', dpadDownTouchEnd)
     dpadDown.on('touchendoutside', dpadDownTouchEnd)
@@ -1311,16 +1314,18 @@ export default class StageScene extends SceneBase {
     dpadLeft.hitArea = new Pixi.Rectangle(0, 0, 80, 80)
     dpadLeft.interactive = true
     dpadLeft.on('touchstart', (): void => {
-      dpad.texture = dpadLeftTexture
+      dpad.setSubRect(dpadLeftRect)
+      dpadDir = Buttons.Left
       if (this._state === StageState.Idle) {
         this._pressAction(Buttons.Left)
       }
     })
     const dpadLeftTouchEnd = (): void => {
-      if (dpad.texture === dpadLeftTexture) {
-        dpad.texture = dpadTexture
-      }
       this._releaseAction(Buttons.Left)
+      if (dpadDir === Buttons.Left) {
+        dpad.setSubRect(dpadRect)
+        dpadDir = null
+      }
     }
     dpadLeft.on('touchend', dpadLeftTouchEnd)
     dpadLeft.on('touchendoutside', dpadLeftTouchEnd)
@@ -1333,14 +1338,16 @@ export default class StageScene extends SceneBase {
     dpadRight.hitArea = new Pixi.Rectangle(0, 0, 80, 80)
     dpadRight.interactive = true
     dpadRight.on('touchstart', (): void => {
-      dpad.texture = dpadRightTexture
+      dpad.setSubRect(dpadRightRect)
+      dpadDir = Buttons.Right
       if (this._state === StageState.Idle) {
         this._pressAction(Buttons.Right)
       }
     })
     const dpadRightTouchEnd = (): void => {
-      if (dpad.texture === dpadRightTexture) {
-        dpad.texture = dpadTexture
+      if (dpadDir === Buttons.Right) {
+        dpad.setSubRect(dpadRect)
+        dpadDir = null
       }
       this._releaseAction(Buttons.Right)
     }
