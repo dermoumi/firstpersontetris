@@ -25,7 +25,9 @@ export type ResourceDict = Record<string, Pixi.LoaderResource>
 export default class GameApp {
   private container: HTMLElement
   private lastTimestamp = 0
-  public pixi: Pixi.Application
+  public view: HTMLCanvasElement
+  public renderer: Pixi.Renderer
+  public ticker: Pixi.Ticker
   public stage = new Pixi.Container()
   public sceneManager = new SceneManager(this)
   public input = new Input()
@@ -37,12 +39,20 @@ export default class GameApp {
     this.container = container
 
     Pixi.utils.skipHello()
-    this.pixi = new Pixi.Application({
-      autoStart: false,
-    })
-    this.pixi.ticker.autoStart = false
-    this.pixi.ticker.stop()
-    this.container.appendChild(this.pixi.view)
+
+    this.view = document.createElement('canvas')
+    this.view.width = this.container.clientWidth
+    this.view.height = this.container.clientHeight
+    this.container.appendChild(this.view)
+
+    this.ticker = Pixi.Ticker.shared
+    this.ticker.autoStart = false
+    this.ticker.stop()
+
+    const rendererOptions = {
+      view: this.view,
+    }
+    this.renderer = Pixi.autoDetectRenderer(rendererOptions)
   }
 
   public run(): void {
@@ -114,7 +124,9 @@ export default class GameApp {
   private onResize(): void {
     const width = this.container.clientWidth
     const height = this.container.clientHeight
-    this.pixi.renderer.resize(width, height)
+    this.view.width = width
+    this.view.height = height
+    this.renderer.resize(width, height)
     this.sceneManager.updateScreenSize(width, height)
   }
 
@@ -129,7 +141,7 @@ export default class GameApp {
     // Update scene
     if (this.sceneManager.update(frameTime)) {
       // Render scene
-      this.pixi.renderer.render(this.stage)
+      this.renderer.render(this.stage)
     }
 
     // Request the next frame
@@ -138,8 +150,8 @@ export default class GameApp {
 
   public getSize(): SizeObject {
     return {
-      width: this.pixi.renderer.width,
-      height: this.pixi.renderer.height,
+      width: this.renderer.width,
+      height: this.renderer.height,
     }
   }
 }

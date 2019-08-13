@@ -937,7 +937,7 @@ export default class StageScene extends SceneBase {
     curtainBlock.beginFill(color1)
     curtainBlock.drawRect(0, 10, 16, 4)
 
-    this.app.pixi.renderer.render(curtainBlock, this._curtainTexture)
+    this.app.renderer.render(curtainBlock, this._curtainTexture)
 
     this._gameOverInitRotation = this._room.angle
     this._gameOverInitPivotX = this._room.pivot.x
