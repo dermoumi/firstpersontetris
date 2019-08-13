@@ -77,17 +77,27 @@ export enum Axis {
 }
 
 // Default keyboard key map
-export function getDefaultKeyMap(_player: number, _level3Supported: boolean): KeyboardMap {
+export function getDefaultKeyMap(_player: number, level3Supported: boolean): KeyboardMap {
+  const keys = level3Supported ? {
+    ArrowUp: Buttons.Up,
+    ArrowLeft: Buttons.Left,
+    ArrowDown: Buttons.Down,
+    ArrowRight: Buttons.Right,
+    Space: Buttons.Rotate,
+    Enter: Buttons.Drop,
+    Escape: Buttons.Pause,
+  } : {
+    '38': Buttons.Up,
+    '37': Buttons.Left,
+    '40': Buttons.Down,
+    '39': Buttons.Right,
+    '32': Buttons.Rotate,
+    '13': Buttons.Drop,
+    '27': Buttons.Pause,
+  }
+
   return {
-    keys: {
-      ArrowUp: Buttons.Up,
-      ArrowLeft: Buttons.Left,
-      ArrowDown: Buttons.Down,
-      ArrowRight: Buttons.Right,
-      Space: Buttons.Rotate,
-      Enter: Buttons.Drop,
-      Escape: Buttons.Pause,
-    },
+    keys: keys,
     keyAxes: {
       [Buttons.Up]: {
         axis: Axis.LeftY,
