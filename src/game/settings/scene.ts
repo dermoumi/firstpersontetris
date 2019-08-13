@@ -17,11 +17,18 @@ import SubSprite from 'game/utils/subsprite'
 
 const CONTAINER_WIDTH = 640
 const CONTAINER_HEIGHT = 480
+
 const MUSIC_TRACKS: [string, string][] = [
   [bgmType1, bgmType1Fast],
   [bgmType2, bgmType2Fast],
   [bgmType3, bgmType3Fast],
 ]
+
+const TITLE_STYLE = {
+  fontFamily: 'main',
+  fontSize: 24,
+  fill: 0xFFFFFF,
+}
 
 export interface StageData {
   level: number;
@@ -45,219 +52,77 @@ export interface Settings {
 }
 
 export default class SettingsScene extends SceneBase {
-  private _container = new Pixi.Container()
-  private _musicCheckboxes: CheckBox[] = []
-  private _selectedMusic = 0
-  private _sfxOn = true
-  private _lightsOut = false
-  private _inCrisis = false
-  private _hiScore = 10000
-  private _isPaused = false
-  private _panicMode = false
+  private container = new Pixi.Container()
+  private musicCheckboxes: CheckBox[] = []
+  private selectedMusic = 0
+  private sfxOn = true
+  private lightsOut = false
+  private inCrisis = false
+  private hiScore = 10000
+  private isPaused = false
+  private panicMode = false
 
   public constructor(app: GameApp, userdata: TitleUserdata = {}) {
     super(app)
 
-    this._loadSettings()
+    this.loadSettings()
+    this.app.sound.setSfxEnabled(this.sfxOn)
 
-    let titleString = "IT'S FIRST-PERSON TETRIS"
+    // Set layout depending on which mode is current
     if (userdata.pause !== undefined) {
-      titleString = "PAUSED"
-      this._isPaused = true
-      this._panicMode = userdata.pause.panic
-      this.app.sound.playSfx('pause')
-      this._drawStageData(userdata.pause)
+      this.setupPauseMenu(userdata.pause)
+    } else if (userdata.gameOver !== undefined) {
+      this.setupGameOverMenu(userdata.gameOver)
     } else {
-      this._playMusic()
-      if (userdata.gameOver !== undefined) {
-        titleString = "GAME OVER"
-        this._hiScore = userdata.gameOver.hiScore
-        this._saveSettings()
-        this._drawStageData(userdata.gameOver)
-      } else {
-        this._drawControls()
-      }
+      this.setupTitleMenu()
     }
 
-    this.app.sound.setSfxEnabled(this._sfxOn)
-    this.stage.addChild(this._container)
-
-    const titleStyle = {
-      fontFamily: 'main',
-      fontSize: 24,
-      fill: 0xFFFFFF,
-    }
-
-    const gameTitle = new Pixi.Text(titleString, titleStyle)
-    gameTitle.position.x = 24
-    gameTitle.position.y = 24
-    this._container.addChild(gameTitle)
-
-    const musicTitle = new Pixi.Text('MUSIC', titleStyle)
-    musicTitle.position.x = 24
-    musicTitle.position.y = 180
-    this._container.addChild(musicTitle)
-
-    for (let i = 0; i < 4; ++i) {
-      const selected = (i === this._selectedMusic)
-      const interactive = (!selected || !this.app.sound.isMusicPlaying())
-      const checkBox = new CheckBox(i == 3 ? 'OFF' : `TYPE${i+1}`, selected)
-      checkBox.position.x = 38 + i * 160
-      checkBox.position.y = 220
-      checkBox.interactive = interactive
-      checkBox.buttonMode = interactive
-      this._container.addChild(checkBox)
-      checkBox.on('pointertap', (): void => this._selectMusic(i))
-      this._musicCheckboxes.push(checkBox)
-    }
-
-    const optionsTitle = new Pixi.Text('OPTIONS', titleStyle)
-    optionsTitle.position.x = 24
-    optionsTitle.position.y = 280
-    this._container.addChild(optionsTitle)
-
-    const sfxCheckbox = new CheckBox('SFX', this._sfxOn)
-    sfxCheckbox.position.x = 38
-    sfxCheckbox.position.y = 320
-    this._container.addChild(sfxCheckbox)
-    sfxCheckbox.on('pointertap', (): void => {
-      this._sfxOn = !this._sfxOn
-      sfxCheckbox.setChecked(this._sfxOn)
-      this.app.sound.setSfxEnabled(this._sfxOn)
-      this._saveSettings()
-      this.app.sound.playSfx('beep')
-    })
-
-    const lightsOutCheckbox = new CheckBox('LIGHTS OUT', this._lightsOut)
-    lightsOutCheckbox.position.x = 168
-    lightsOutCheckbox.position.y = 320
-    this._container.addChild(lightsOutCheckbox)
-    lightsOutCheckbox.on('pointertap', (): void => {
-      this._lightsOut = !this._lightsOut
-      lightsOutCheckbox.setChecked(this._lightsOut)
-      this._saveSettings()
-      this.app.sound.playSfx('beep')
-    })
-
-    const crisisCheckbox = new CheckBox('IN CRISIS', this._inCrisis)
-    crisisCheckbox.position.x = 418
-    crisisCheckbox.position.y = 320
-    this._container.addChild(crisisCheckbox)
-    crisisCheckbox.on('pointertap', (): void => {
-      this._inCrisis = !this._inCrisis
-      crisisCheckbox.setChecked(this._inCrisis)
-      this._saveSettings()
-
-      if (this._inCrisis) {
-        this.app.sound.stopMusic()
-        this.app.sound.setMusic(bgmCrisis, bgmCrisis)
-        this.app.sound.playSlowMusic()
-      } else {
-        this._playMusic()
-      }
-
-      this.app.sound.playSfx('beep')
-    })
-
-    const buttonStyle = {
-      fontFamily: 'main',
-      fontSize: 32,
-      fill: 0x3CBCFC,
-    }
-
-    if (this._isPaused) {
-      const resumeText = new Pixi.Text('RESUME', buttonStyle)
-      resumeText.position.x = Math.floor((CONTAINER_WIDTH - resumeText.width) / 2)
-      resumeText.position.y = 376
-      resumeText.interactive = true
-      resumeText.buttonMode = true
-      resumeText.on('tap', this._resumeGame.bind(this, true))
-      resumeText.on('click', this._resumeGame.bind(this, false))
-      this._container.addChild(resumeText)
-    } else {
-      const pushStartText = new Pixi.Text('PUSH START', buttonStyle)
-      pushStartText.position.x = Math.floor((CONTAINER_WIDTH - pushStartText.width) / 2)
-      pushStartText.position.y = 376
-      pushStartText.interactive = true
-      pushStartText.buttonMode = true
-      pushStartText.on('tap', this._startGame.bind(this, true))
-      pushStartText.on('click', this._startGame.bind(this, false))
-      this._container.addChild(pushStartText)
-    }
-
-    this._container.pivot.x = Math.floor(CONTAINER_WIDTH / 2)
-    this._container.pivot.y = Math.floor(CONTAINER_HEIGHT / 2)
-
-    this._drawCreditText()
+    this.container.pivot.x = Math.floor(CONTAINER_WIDTH / 2)
+    this.container.pivot.y = Math.floor(CONTAINER_HEIGHT / 2)
+    this.stage.addChild(this.container)
   }
 
-  public onResize(width: number, height: number): void {
-    const minWidth = CONTAINER_WIDTH
-    const minHeight = CONTAINER_HEIGHT
-    let scale = 1
-
-    // Check width first
-    if (width < minWidth) {
-      scale = width / minWidth
-    }
-
-    // Check the scaled height (if scaled)
-    if (height < minHeight * scale) {
-      scale = height / minHeight
-    }
-
-    this._container.position.x = Math.floor(width / 2)
-    this._container.position.y = Math.floor(height / 2)
-
-    this._container.scale.x = scale
-    this._container.scale.y = scale
-
-    super.onResize(width, height)
+  private setupTitleMenu(): void {
+    this.drawControlsSection("IT'S FIRST-PERSON TETRIS")
+    this.drawMusicSection()
+    this.drawOptionsSection()
+    this.drawStartButton()
+    this.drawCreditsText()
   }
 
-  public onProcessInput(input: Input): void {
-    const player = input.getFor(0)
+  private setupPauseMenu(stageData: StageData): void {
+    this.isPaused = true
+    this.panicMode = stageData.panic
+    this.app.sound.playSfx('pause')
 
-    if (this._isPaused) {
-      if (player.isPressed(Buttons.Pause)) {
-        this._resumeGame()
-      }
-    } else {
-      if (player.isPressed(Buttons.Pause | Buttons.Drop | Buttons.Rotate)) {
-        this._startGame()
-      }
-    }
+    this.drawStageDataSection('PAUSED', stageData)
+    this.drawMusicSection()
+    this.drawOptionsSection()
+    this.drawStartButton()
+    this.drawCreditsText()
   }
 
-  private _loadSettings(): void {
-    const settingsJson = window.localStorage.getItem('settings')
-    if (!settingsJson) return
+  private setupGameOverMenu(stageData: StageData): void {
+    this.hiScore = stageData.hiScore
+    this.saveSettings()
 
-    try {
-      const settings: Settings = JSON.parse(settingsJson)
-      this._hiScore = settings.hiScore
-      this._selectedMusic = settings.music
-      this._sfxOn = settings.sfx
-      this._lightsOut = settings.lightsOut
-      this._inCrisis = settings.crisis
-    } catch (err) {
-      // Ignore silently
-    }
+    this.drawStageDataSection('GAME OVER', stageData)
+    this.drawMusicSection()
+    this.drawOptionsSection()
+    this.drawStartButton()
+    this.drawCreditsText()
   }
 
-  private _saveSettings(): void {
-    const settings: Settings = {
-      hiScore: this._hiScore,
-      music: this._selectedMusic,
-      sfx: this._sfxOn,
-      lightsOut: this._lightsOut,
-      crisis: this._inCrisis,
-    }
-
-    window.localStorage.setItem('settings', JSON.stringify(settings))
+  private drawTitleText(text: string, posX: number, posY: number): void {
+    const title = new Pixi.Text(text, TITLE_STYLE)
+    title.position.x = posX
+    title.position.y = posY
+    this.container.addChild(title)
   }
 
-  private _drawControls(): void {
+  private drawControlsSection(title: string): void {
+    this.drawTitleText(title, 24, 24)
+
     const labelStyle = {
       fontFamily: 'main',
       fontSize: 18,
@@ -269,51 +134,53 @@ export default class SettingsScene extends SceneBase {
     arrows.scale.y = 2
     arrows.position.x = 24
     arrows.position.y = 64
-    this._container.addChild(arrows)
+    this.container.addChild(arrows)
 
     const arrowsLabel = new Pixi.Text('MOVE', labelStyle)
     arrowsLabel.position.x = arrows.position.x + (arrows.width - arrowsLabel.width) / 2
     arrowsLabel.position.y = 136
-    this._container.addChild(arrowsLabel)
+    this.container.addChild(arrowsLabel)
 
     const space = new SubSprite(GameApp.resources.ui.texture, new Pixi.Rectangle(52, 38, 75, 15))
     space.scale.x = 2
     space.scale.y = 2
     space.position.x = 181
     space.position.y = 100
-    this._container.addChild(space)
+    this.container.addChild(space)
 
     const spaceLabel = new Pixi.Text('ROTATE', labelStyle)
     spaceLabel.position.x = space.position.x + (space.width - spaceLabel.width) / 2
     spaceLabel.position.y = 136
-    this._container.addChild(spaceLabel)
+    this.container.addChild(spaceLabel)
 
     const enter = new SubSprite(GameApp.resources.ui.texture, new Pixi.Rectangle(52, 0, 53, 18))
     enter.scale.x = 2
     enter.scale.y = 2
     enter.position.x = 386
     enter.position.y = 94
-    this._container.addChild(enter)
+    this.container.addChild(enter)
 
     const enterLabel = new Pixi.Text('DROP', labelStyle)
     enterLabel.position.x = enter.position.x + (enter.width - enterLabel.width) / 2
     enterLabel.position.y = 136
-    this._container.addChild(enterLabel)
+    this.container.addChild(enterLabel)
 
     const escape = new SubSprite(GameApp.resources.ui.texture, new Pixi.Rectangle(52, 19, 35, 18))
     escape.scale.x = 2
     escape.scale.y = 2
     escape.position.x = 547
     escape.position.y = 94
-    this._container.addChild(escape)
+    this.container.addChild(escape)
 
     const escapeLabel = new Pixi.Text('PAUSE', labelStyle)
     escapeLabel.position.x = escape.position.x + (escape.width - escapeLabel.width) / 2
     escapeLabel.position.y = 136
-    this._container.addChild(escapeLabel)
+    this.container.addChild(escapeLabel)
   }
 
-  private _drawStageData(data: StageData): void {
+  private drawStageDataSection(title: string, data: StageData): void {
+    this.drawTitleText(title, 24, 24)
+
     const labelStyle = {
       fontFamily: 'main',
       fontSize: 18,
@@ -329,116 +196,108 @@ export default class SettingsScene extends SceneBase {
     const levelLabel = new Pixi.Text('LEVEL', labelStyle)
     levelLabel.position.x = 38
     levelLabel.position.y = 64
-    this._container.addChild(levelLabel)
+    this.container.addChild(levelLabel)
 
     const linesLabel = new Pixi.Text('LINES', labelStyle)
     linesLabel.position.x = 38
     linesLabel.position.y = 84
-    this._container.addChild(linesLabel)
+    this.container.addChild(linesLabel)
 
     const scoreLabel = new Pixi.Text('SCORE', labelStyle)
     scoreLabel.position.x = 38
     scoreLabel.position.y = 104
-    this._container.addChild(scoreLabel)
+    this.container.addChild(scoreLabel)
 
     const hiScoreLabel = new Pixi.Text('TOP SCORE', labelStyle)
     hiScoreLabel.position.x = 38
     hiScoreLabel.position.y = 124
-    this._container.addChild(hiScoreLabel)
+    this.container.addChild(hiScoreLabel)
 
     const level = new Pixi.Text(data.level.toString(), valueStyle)
     level.position.x = 180
     level.position.y = 64
-    this._container.addChild(level)
+    this.container.addChild(level)
 
     const lines = new Pixi.Text(data.lines.toString(), valueStyle)
     lines.position.x = 180
     lines.position.y = 84
-    this._container.addChild(lines)
+    this.container.addChild(lines)
 
     const score = new Pixi.Text(data.score.toString(), valueStyle)
     score.position.x = 180
     score.position.y = 104
-    this._container.addChild(score)
+    this.container.addChild(score)
 
     const hiScore = new Pixi.Text(data.hiScore.toString(), valueStyle)
     hiScore.position.x = 180
     hiScore.position.y = 124
-    this._container.addChild(hiScore)
+    this.container.addChild(hiScore)
   }
 
-  private _selectMusic(index: number): void {
-    this._selectedMusic = index
-    this._saveSettings()
-    this._playMusic(this._selectedMusic)
+  private drawMusicSection(): void {
+    this.drawTitleText('MUSIC', 24, 180)
 
-    this._musicCheckboxes.forEach((checkBox, i): void => {
-      const selected = (i === index)
-      checkBox.setChecked(selected)
-      checkBox.interactive = !selected
-      checkBox.buttonMode = !selected
-    })
+    this.musicCheckboxes = new Array(4)
+    for (let i = 0; i < 4; ++i) {
+      const selected = (i === this.selectedMusic)
+      const interactive = (!selected || !this.app.sound.isMusicPlaying())
 
-    this.app.sound.playSfx('beep')
-  }
+      const checkBoxLabel = (i === 3) ? 'OFF' : `TYPE${i + 1}`
+      const checkBox = new CheckBox(checkBoxLabel, selected)
+      checkBox.position.x = 38 + i * 160
+      checkBox.position.y = 220
+      checkBox.interactive = interactive
+      checkBox.buttonMode = interactive
+      checkBox.on('pointertap', this.actionSelectMusic.bind(this, i))
 
-  private _playMusic(index: number = this._selectedMusic): void {
-    if (this._inCrisis) {
-      this.app.sound.setMusic(bgmCrisis, bgmCrisis)
-      this.app.sound.playSlowMusic()
-      return
-    }
-
-    const sound = this.app.sound
-
-    if (index >= 3) {
-      sound.removeMusic()
-      return
-    }
-
-    const [ music, musicFast ] = MUSIC_TRACKS[index]
-    sound.setMusic(music, musicFast)
-
-    if (this._isPaused && this._panicMode) {
-      sound.playFastMusic()
-    } else {
-      sound.playSlowMusic()
+      this.container.addChild(checkBox)
+      this.musicCheckboxes[i] = checkBox
     }
   }
 
-  private _startGame(touch = false): void {
-    if (touch) {
-      document.body.requestFullscreen()
-    }
+  private drawOptionsSection(): void {
+    this.drawTitleText('OPTIONS', 24, 280)
 
-    this.manager.switchTo(new SceneStage(this.app, {
-      hiScore: this._hiScore,
-      lightsOut: this._lightsOut,
-      crisisMode: this._inCrisis,
-      touchControls: touch,
-    }))
+    const sfxCheckbox = new CheckBox('SFX', this.sfxOn)
+    sfxCheckbox.position.x = 38
+    sfxCheckbox.position.y = 320
+    sfxCheckbox.on('pointertap', this.actionToggleSfx.bind(this, sfxCheckbox))
+    this.container.addChild(sfxCheckbox)
 
-    this.app.sound.playSfx('beep')
+    const lightsOutCheckbox = new CheckBox('LIGHTS OUT', this.lightsOut)
+    lightsOutCheckbox.position.x = 168
+    lightsOutCheckbox.position.y = 320
+    lightsOutCheckbox.on('pointertap', this.actionToggleLightsOut.bind(this, lightsOutCheckbox))
+    this.container.addChild(lightsOutCheckbox)
 
-    if (!this.app.sound.isMusicPlaying() && (this._inCrisis || this._selectedMusic < 3)) {
-      this._playMusic()
-    }
+    const inCrisisCheckbox = new CheckBox('IN CRISIS', this.inCrisis)
+    inCrisisCheckbox.position.x = 418
+    inCrisisCheckbox.position.y = 320
+    inCrisisCheckbox.on('pointertap', this.actionToggleCrisisMode.bind(this, inCrisisCheckbox))
+    this.container.addChild(inCrisisCheckbox)
   }
 
-  private _resumeGame(touch = false): void {
-    if (touch) {
-      document.body.requestFullscreen()
+  private drawStartButton(): void {
+    const buttonStyle = {
+      fontFamily: 'main',
+      fontSize: 32,
+      fill: 0x3CBCFC,
     }
 
-    this.manager.pop({
-      lightsOut: this._lightsOut,
-      crisisMode: this._inCrisis,
-      touchControls: touch,
-    })
-    this.app.sound.playSfx('pause')
+    const buttonText = this.isPaused ? 'RESUME' : 'PUSH START'
+    const buttonAction = this.isPaused ? this.actionResumeGame : this.actionStartGame
+
+    const button = new Pixi.Text(buttonText, buttonStyle)
+    button.position.x = Math.floor((CONTAINER_WIDTH - button.width) / 2)
+    button.position.y = 376
+    button.interactive = true
+    button.buttonMode = true
+    button.on('tap', buttonAction.bind(this, true))
+    button.on('click', buttonAction.bind(this, false))
+    this.container.addChild(button)
   }
 
-  private _drawCreditText(): void {
+  private drawCreditsText(): void {
     const creditText = {
       fontFamily: 'main',
       fontSize: 12,
@@ -456,31 +315,205 @@ export default class SettingsScene extends SceneBase {
 
     text1.position.x = (CONTAINER_WIDTH - text1.width - text2.width) / 2
     text1.position.y = CONTAINER_HEIGHT - 32
-    this._container.addChild(text1)
+    this.container.addChild(text1)
 
     text2.position.x = text1.position.x + text1.width
     text2.position.y = text1.position.y
-    this._container.addChild(text2)
     text2.interactive = true
     text2.buttonMode = true
     text2.on('pointertap', (): void => {
       window.open('https://twitter.com/sdrmme', '_blank')
     })
+    this.container.addChild(text2)
 
     const text3 = new Pixi.Text('Based on work by ', creditText)
     const text4 = new Pixi.Text('@dontsave', linkText)
 
     text3.position.x = (CONTAINER_WIDTH - text3.width - text4.width) / 2
     text3.position.y = CONTAINER_HEIGHT - 16
-    this._container.addChild(text3)
+    this.container.addChild(text3)
 
     text4.position.x = text3.position.x + text3.width
     text4.position.y = text3.position.y
-    this._container.addChild(text4)
     text4.interactive = true
     text4.buttonMode = true
     text4.on('pointertap', (): void => {
       window.open('https://twitter.com/dontsave', '_blank')
     })
+    this.container.addChild(text4)
   }
+
+  private loadSettings(): void {
+    const settingsJson = window.localStorage.getItem('settings')
+    if (!settingsJson) return
+
+    try {
+      const settings: Settings = JSON.parse(settingsJson)
+      this.hiScore = settings.hiScore
+      this.selectedMusic = settings.music
+      this.sfxOn = settings.sfx
+      this.lightsOut = settings.lightsOut
+      this.inCrisis = settings.crisis
+    } catch (err) {
+      // Ignore silently
+    }
+  }
+
+  private saveSettings(): void {
+    const settings: Settings = {
+      hiScore: this.hiScore,
+      music: this.selectedMusic,
+      sfx: this.sfxOn,
+      lightsOut: this.lightsOut,
+      crisis: this.inCrisis,
+    }
+
+    window.localStorage.setItem('settings', JSON.stringify(settings))
+  }
+
+  private playMusic(index: number = this.selectedMusic): void {
+    const sound = this.app.sound
+
+    if (this.inCrisis) {
+      sound.setMusic(bgmCrisis, bgmCrisis)
+      sound.playSlowMusic()
+      return
+    }
+
+    if (index >= 3) {
+      sound.removeMusic()
+      return
+    }
+
+    const [music, musicFast] = MUSIC_TRACKS[index]
+    sound.setMusic(music, musicFast)
+
+    if (this.panicMode) {
+      sound.playFastMusic()
+    } else {
+      sound.playSlowMusic()
+    }
+  }
+
+  private actionSelectMusic(index: number): void {
+    this.selectedMusic = index
+    this.saveSettings()
+
+    if (!this.inCrisis || !this.app.sound.isMusicPlaying()) {
+      this.playMusic(this.selectedMusic)
+    }
+
+    this.musicCheckboxes.forEach((checkBox, i): void => {
+      const selected = (i === index)
+      checkBox.setChecked(selected)
+      checkBox.interactive = !selected
+      checkBox.buttonMode = !selected
+    })
+
+    this.app.sound.playSfx('beep')
+  }
+
+  private actionToggleSfx(checkbox: CheckBox): void {
+    this.sfxOn = !this.sfxOn
+
+    checkbox.setChecked(this.sfxOn)
+    this.app.sound.setSfxEnabled(this.sfxOn)
+    this.app.sound.playSfx('beep')
+
+    this.saveSettings()
+  }
+
+  private actionToggleLightsOut(checkbox: CheckBox): void {
+    this.lightsOut = !this.lightsOut
+
+    checkbox.setChecked(this.lightsOut)
+    this.app.sound.playSfx('beep')
+
+    this.saveSettings()
+  }
+
+  private actionToggleCrisisMode(checkbox: CheckBox): void {
+    this.inCrisis = !this.inCrisis
+
+    checkbox.setChecked(this.inCrisis)
+    this.app.sound.playSfx('beep')
+
+    if (this.inCrisis) {
+      this.app.sound.setMusic(bgmCrisis, bgmCrisis)
+      this.app.sound.playSlowMusic()
+    } else {
+      this.playMusic()
+    }
+
+    this.saveSettings()
+  }
+
+  private actionStartGame(touch = false): void {
+    if (touch) document.body.requestFullscreen()
+
+    this.app.sound.playSfx('beep')
+
+    if (!this.app.sound.isMusicPlaying()) {
+      this.playMusic()
+    }
+
+    this.manager.switchTo(new SceneStage(this.app, {
+      hiScore: this.hiScore,
+      lightsOut: this.lightsOut,
+      crisisMode: this.inCrisis,
+      touchControls: touch,
+    }))
+  }
+
+  private actionResumeGame(touch = false): void {
+    if (touch) document.body.requestFullscreen()
+
+    this.app.sound.playSfx('pause')
+
+    this.manager.pop({
+      lightsOut: this.lightsOut,
+      crisisMode: this.inCrisis,
+      touchControls: touch,
+    })
+  }
+
+  public onResize(width: number, height: number): void {
+    const minWidth = CONTAINER_WIDTH
+    const minHeight = CONTAINER_HEIGHT
+    let scale = 1
+
+    // Check width first
+    if (width < minWidth) {
+      scale = width / minWidth
+    }
+
+    // Check the scaled height (if scaled)
+    if (height < minHeight * scale) {
+      scale = height / minHeight
+    }
+
+    this.container.position.x = Math.floor(width / 2)
+    this.container.position.y = Math.floor(height / 2)
+
+    this.container.scale.x = scale
+    this.container.scale.y = scale
+
+    super.onResize(width, height)
+  }
+
+  public onProcessInput(input: Input): void {
+    const playerInput = input.getFor(0)
+
+    if (this.isPaused) {
+      if (playerInput.isPressed(Buttons.Pause)) {
+        this.actionResumeGame()
+      }
+      return
+    }
+
+    if (playerInput.isPressed(Buttons.Pause | Buttons.Drop | Buttons.Rotate)) {
+      this.actionStartGame()
+    }
+  }
+
 }

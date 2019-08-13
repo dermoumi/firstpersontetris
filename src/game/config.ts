@@ -78,7 +78,7 @@ export enum Axis {
 
 // Default keyboard key map
 export function getDefaultKeyMap(_player: number, level3Supported: boolean): KeyboardMap {
-  const keys = level3Supported ? {
+  const keys: Record<string, Buttons> = level3Supported ? {
     ArrowUp: Buttons.Up,
     ArrowLeft: Buttons.Left,
     ArrowDown: Buttons.Down,

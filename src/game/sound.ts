@@ -2,73 +2,73 @@ import 'pixi-sound'
 import GameApp from './app'
 
 export default class Sound {
-  private _music?: HTMLAudioElement
-  private _musicFast?: HTMLAudioElement
-  private _sfxEnabled = true
+  private bgm?: HTMLAudioElement
+  private bgmFast?: HTMLAudioElement
+  private sfxEnabled = true
 
   public setMusic(urlSlow: string, urlFast: string): void {
     this.stopMusic()
 
-    this._music = new Audio(urlSlow)
-    this._music.loop = true
-    this._music.volume = 0.5
+    this.bgm = new Audio(urlSlow)
+    this.bgm.loop = true
+    this.bgm.volume = 0.5
 
-    this._musicFast = new Audio(urlFast)
-    this._musicFast.loop = true
-    this._musicFast.volume = 0.5
+    this.bgmFast = new Audio(urlFast)
+    this.bgmFast.loop = true
+    this.bgmFast.volume = 0.5
   }
 
   public removeMusic(): void {
     this.stopMusic()
 
-    this._music = undefined
-    this._musicFast = undefined
+    this.bgm = undefined
+    this.bgmFast = undefined
   }
 
   public playSlowMusic(): void {
-    if (!this._music) return
-    const promise = this._music.play()
+    if (!this.bgm) return
+    const promise = this.bgm.play()
     if (promise !== null) {
       promise.catch((): void => {})
     }
   }
 
   public playFastMusic(): void {
-    if (!this._musicFast) return
-    this._musicFast.play()
+    if (!this.bgmFast) return
+    this.bgmFast.play()
   }
 
   public stopMusic(): void {
-    if (this._music) {
-      this._music.pause()
-      this._music.currentTime = 0
+    if (this.bgm) {
+      this.bgm.pause()
+      this.bgm.currentTime = 0
     }
 
-    if (this._musicFast) {
-      this._musicFast.pause()
-      this._musicFast.currentTime = 0
+    if (this.bgmFast) {
+      this.bgmFast.pause()
+      this.bgmFast.currentTime = 0
     }
   }
 
   public setSfxEnabled(enabled: boolean): void {
-    this._sfxEnabled = enabled
+    this.sfxEnabled = enabled
   }
 
   public isSfxEnabled(): boolean {
-    return this._sfxEnabled
+    return this.sfxEnabled
   }
 
   public playSfx(name?: string, res: string = 'sfxSprites'): void {
-    if (!this._sfxEnabled) return
+    if (!this.sfxEnabled) return
     GameApp.resources[res].sound.play(name)
   }
 
   public isMusicPlaying(): boolean {
-    if (this._music && !this._music.paused) {
+    if (this.bgm && !this.bgm.paused) {
       return true
     }
 
-    if (this._musicFast && !this._musicFast.paused) {
+    if (this.bgmFast && !this.bgmFast.paused) {
       return true
     }
 
