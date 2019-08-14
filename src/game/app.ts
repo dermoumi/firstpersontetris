@@ -3,6 +3,7 @@ import SceneManager from 'game/scene/manager'
 import SettingsScene from 'game/settings/scene'
 import Input from 'game/input'
 import Sound from 'game/sound'
+import { isWebpSupported } from './utils'
 
 import stage from 'assets/images/stage.png'
 import room from 'assets/images/room.jpg'
@@ -13,7 +14,6 @@ import osControls from 'assets/images/onscreencontrols.png'
 import osControlsWebp from 'assets/images/onscreencontrols.webp'
 import ui from 'assets/images/ui.png'
 import sfxSprites from 'assets/sounds/sfx.mp3'
-import { isWebpSupported } from './utils'
 
 export interface SizeObject {
   width: number;
@@ -79,45 +79,60 @@ export default class GameApp {
 
   public async preload(): Promise<void> {
     const webpSupported = await isWebpSupported()
-    return new Promise((resolve): void => {
-      const loader = Pixi.Loader.shared
 
-      loader.add('stage', stage)
-        .add('sfxSprites', sfxSprites)
-        .add('ui', ui)
+    // Setup loading as BLOB for some file types
+    ;['mp3'].forEach((type): void => {
+      Pixi.LoaderResource.setExtensionLoadType(type, Pixi.LoaderResource.LOAD_TYPE.XHR)
+      Pixi.LoaderResource.setExtensionXhrType(type, Pixi.LoaderResource.XHR_RESPONSE_TYPE.BLOB)
+    })
 
-      if (webpSupported) {
-        loader.add('room', roomWebp)
-          .add('screen', screenWebp)
-          .add('onScreenControls', osControlsWebp)
-      } else {
-        loader.add('room', room)
-          .add('screen', screen)
-          .add('onScreenControls', osControls)
-      }
+    // Load resources
+    const loader = Pixi.Loader.shared
 
+    loader.add('stage', stage)
+      .add('ui', ui)
+      .add('sfx', sfxSprites)
+
+    if (webpSupported) {
+      loader.add('room', roomWebp)
+        .add('screen', screenWebp)
+        .add('onScreenControls', osControlsWebp)
+    } else {
+      loader.add('room', room)
+        .add('screen', screen)
+        .add('onScreenControls', osControls)
+    }
+
+    // Callback for when resources are loaded
+    GameApp.resources = await new Promise((resolve): void => {
       loader.load((_loader: Pixi.Loader, resources: ResourceDict): void => {
-        GameApp.resources = resources
-
-        // Set a couple of textures up with NEAREST filtering
-        ;['stage', 'ui'].forEach((res): void => {
-          resources[res].texture.baseTexture.scaleMode = Pixi.SCALE_MODES.NEAREST
-        })
-
-        // Setup sound sprites
-        resources.sfxSprites.sound.addSprites({
-          beep:   { start: 0,      end: 1.123 },
-          level:  { start: 1.123,  end: 3.161 },
-          line:   { start: 3.161,  end: 4.989 },
-          over:   { start: 4.989,  end: 7.131 },
-          pause:  { start: 7.131,  end: 8.542 },
-          rotate: { start: 8.542,  end: 9.874 },
-          tetris: { start: 9.875,  end: 11.572 },
-          united: { start: 11.572, end: 12.774 },
-        })
-
-        resolve()
+        resolve(resources)
       })
+    })
+
+    // Set a couple of textures up with NEAREST filtering
+    ;['stage', 'ui'].forEach((res): void => {
+      GameApp.resources[res].texture.baseTexture.scaleMode = Pixi.SCALE_MODES.NEAREST
+    })
+
+    // console.log(GameApp.resources.sfx)
+
+    // Load sounds
+    this.sound.setSoundBlobs({
+      sfxSprites: {
+        src: [ URL.createObjectURL(GameApp.resources.sfx.data) ],
+        format: [ 'mp3' ],
+        sprite: {
+          beep: [0, 1023],
+          level: [1123, 1938],
+          line: [3161, 1728],
+          over: [4989, 2042],
+          pause: [7131, 1311],
+          rotate: [8542, 1232],
+          tetris: [9875, 1598],
+          united: [11572, 1102],
+        },
+      },
     })
   }
 

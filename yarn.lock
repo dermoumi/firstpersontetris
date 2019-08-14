@@ -91,7 +91,7 @@
   resolved "https://registry.yarnpkg.com/@pixi/constants/-/constants-5.1.0.tgz#663192a3d72cbbca1c40a94a7e1004fbf9ab664a"
   integrity sha512-86cogDvjF9yNvmxeizwkIhA0Kl2z3gUSWMf2daYx903dzyje7fwkzRrKLnqDUn6vSAxRXiska0DMJhwYsIC29w==
 
-"@pixi/core@^5.0.2", "@pixi/core@^5.1.1":
+"@pixi/core@^5.1.1":
   version "5.1.1"
   resolved "https://registry.yarnpkg.com/@pixi/core/-/core-5.1.1.tgz#d5d5790ca2d0b403ee6d4a185fc3a69cdcf7f710"
   integrity sha512-VSWMUhK4ZM66/i+0IjEOIKm+4jDDvunFsaOF99LTq3vk1MqsuMxzibyowylu/Roy5mdtscK6tV9cbt/Pyvzs0w==
@@ -189,7 +189,7 @@
     "@pixi/ticker" "^5.1.1"
     "@pixi/utils" "^5.1.1"
 
-"@pixi/loaders@^5.0.2", "@pixi/loaders@^5.1.1":
+"@pixi/loaders@^5.1.1":
   version "5.1.1"
   resolved "https://registry.yarnpkg.com/@pixi/loaders/-/loaders-5.1.1.tgz#ebfd18c335d7aa2b9a00ce51dba093d3a1e06ee0"
   integrity sha512-5kGv7wRBJRZwV6voRpOUo1fQs2ZqFrWHa3e12cMaetWENzZdYsosLuo03MHHvBFwoWg+htBLOEnvuUiF/4hKxg==
@@ -363,14 +363,14 @@
     "@pixi/sprite" "^5.1.1"
     "@pixi/utils" "^5.1.1"
 
-"@pixi/ticker@^5.0.1", "@pixi/ticker@^5.1.1":
+"@pixi/ticker@^5.1.1":
   version "5.1.1"
   resolved "https://registry.yarnpkg.com/@pixi/ticker/-/ticker-5.1.1.tgz#448159f453681e49cfff4391665d5985e0dd7754"
   integrity sha512-eUitqmwTZAialK7yXLwva/L+VHVix2mi2vvsOj5LxUo2wS32ftnjv4Etd+Gh2QCatX6P3fFowW7v2+jxjqIkPA==
   dependencies:
     "@pixi/settings" "^5.1.1"
 
-"@pixi/utils@^5.0.1", "@pixi/utils@^5.1.1":
+"@pixi/utils@^5.1.1":
   version "5.1.1"
   resolved "https://registry.yarnpkg.com/@pixi/utils/-/utils-5.1.1.tgz#6e4d611044c9118326d175602b7b17f38ed735fc"
   integrity sha512-43loetwAhyzhpqrIdekKLR/rAkNJqvs22jHZVUdPVCU/wYeD7Tkvbg/D36/x8zQ3f0DgF2vtKaO3QAcaVyHOlQ==
@@ -404,6 +404,11 @@
     "@types/events" "*"
     "@types/minimatch" "*"
     "@types/node" "*"
+
+"@types/howler@^2.1.1":
+  version "2.1.1"
+  resolved "https://registry.yarnpkg.com/@types/howler/-/howler-2.1.1.tgz#b2ba53009cc8415da5bb01d625a734babba11435"
+  integrity sha512-YLwc9L853r85WqZk4xCiROGGodmlAYlKb0rQWABt4opLd6QHn2QLXIApa6vRNqjZxkzbiPs6eZskaRGOw5fDAA==
 
 "@types/json-schema@^7.0.3":
   version "7.0.3"
@@ -2698,6 +2703,11 @@ homedir-polyfill@^1.0.1:
   dependencies:
     parse-passwd "^1.0.0"
 
+howler@^2.1.2:
+  version "2.1.2"
+  resolved "https://registry.yarnpkg.com/howler/-/howler-2.1.2.tgz#8433a09d8fe84132a3e726e05cb2bd352ef8bd49"
+  integrity sha512-oKrTFaVXsDRoB/jik7cEpWKTj7VieoiuzMYJ7E/EU5ayvmpRhumCv3YQ3823zi9VTJkSWAhbryHnlZAionGAJg==
+
 hpack.js@^2.1.6:
   version "2.1.6"
   resolved "https://registry.yarnpkg.com/hpack.js/-/hpack.js-2.1.6.tgz#87774c0949e513f42e84575b3c45681fade2a0b2"
@@ -4555,16 +4565,6 @@ pinkie@^2.0.0:
   version "2.0.4"
   resolved "https://registry.yarnpkg.com/pinkie/-/pinkie-2.0.4.tgz#72556b80cfa0d48a974e80e77248e80ed4f7f870"
   integrity sha1-clVrgM+g1IqXToDnckjoDtT3+HA=
-
-pixi-sound@^3.0.3:
-  version "3.0.3"
-  resolved "https://registry.yarnpkg.com/pixi-sound/-/pixi-sound-3.0.3.tgz#c339e9e5f5bbe8ead9ef1c5ed7ce8b0ec2c6cac5"
-  integrity sha512-FPe4+DOOOJGjGpOKWOg1x+NYAsx6tKKI3gAMyI2JmALVO0WHH8/lcsfqvb3nIBgClvHHszHtK0+UKQoxZLK/XA==
-  dependencies:
-    "@pixi/core" "^5.0.2"
-    "@pixi/loaders" "^5.0.2"
-    "@pixi/ticker" "^5.0.1"
-    "@pixi/utils" "^5.0.1"
 
 pixi.js@^5.1.0:
   version "5.1.1"
