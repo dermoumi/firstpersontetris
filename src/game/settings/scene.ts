@@ -1,5 +1,6 @@
 import * as Pixi from 'pixi.js'
 import GameApp from 'game/app'
+import Assets from 'game/assets'
 import Input from 'game/input'
 import SceneBase from 'game/scene/base'
 import SceneStage from 'game/stage/scene'
@@ -129,7 +130,7 @@ export default class SettingsScene extends SceneBase {
       fill: 0x7C7C7C,
     }
 
-    const arrows = new SubSprite(GameApp.resources.ui.texture, new Pixi.Rectangle(0, 0, 51, 33))
+    const arrows = new SubSprite(Assets.ui.texture, new Pixi.Rectangle(0, 0, 51, 33))
     arrows.scale.x = 2
     arrows.scale.y = 2
     arrows.position.x = 24
@@ -141,7 +142,7 @@ export default class SettingsScene extends SceneBase {
     arrowsLabel.position.y = 136
     this.container.addChild(arrowsLabel)
 
-    const space = new SubSprite(GameApp.resources.ui.texture, new Pixi.Rectangle(52, 38, 75, 15))
+    const space = new SubSprite(Assets.ui.texture, new Pixi.Rectangle(52, 38, 75, 15))
     space.scale.x = 2
     space.scale.y = 2
     space.position.x = 181
@@ -153,7 +154,7 @@ export default class SettingsScene extends SceneBase {
     spaceLabel.position.y = 136
     this.container.addChild(spaceLabel)
 
-    const enter = new SubSprite(GameApp.resources.ui.texture, new Pixi.Rectangle(52, 0, 53, 18))
+    const enter = new SubSprite(Assets.ui.texture, new Pixi.Rectangle(52, 0, 53, 18))
     enter.scale.x = 2
     enter.scale.y = 2
     enter.position.x = 386
@@ -165,7 +166,7 @@ export default class SettingsScene extends SceneBase {
     enterLabel.position.y = 136
     this.container.addChild(enterLabel)
 
-    const escape = new SubSprite(GameApp.resources.ui.texture, new Pixi.Rectangle(52, 19, 35, 18))
+    const escape = new SubSprite(Assets.ui.texture, new Pixi.Rectangle(52, 19, 35, 18))
     escape.scale.x = 2
     escape.scale.y = 2
     escape.position.x = 547

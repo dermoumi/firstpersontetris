@@ -1,4 +1,5 @@
 import SceneBase from 'game/scene/base'
+import Assets from 'game/assets'
 import GameApp from 'game/app'
 import Tetromino, { TetrominoAngle } from './tetromino'
 import StageGrid, { WIDTH as GRID_WIDTH, HEIGHT as GRID_HEIGHT, CELL_SIZE, CompleteRow } from './grid'
@@ -226,7 +227,7 @@ export default class StageScene extends SceneBase {
 
     const stageBgRect = new Pixi.Rectangle(0, 0, 256, 224)
 
-    this._screenUi = new SubSprite(GameApp.resources.stage.texture, stageBgRect)
+    this._screenUi = new SubSprite(Assets.stage.texture, stageBgRect)
     this._screenUi.scale.x = 2
     this._screenUi.scale.y = 2
     this._screenUi.zIndex = 100
@@ -268,7 +269,7 @@ export default class StageScene extends SceneBase {
     this._gameOverCurtain.zIndex = 120
     this._screen.addChild(this._gameOverCurtain)
 
-    this._roomBg = Pixi.Sprite.from(GameApp.resources.room.texture)
+    this._roomBg = Pixi.Sprite.from(Assets.room.texture)
     this._room.addChild(this._roomBg)
 
     this._screen.position.x = 740
@@ -277,13 +278,13 @@ export default class StageScene extends SceneBase {
     this._screen.scale.y = 372 / (stageBgRect.height * 2)
     this._room.addChild(this._screen)
 
-    this._screenOverlay = Pixi.Sprite.from(GameApp.resources.screen.texture)
+    this._screenOverlay = Pixi.Sprite.from(Assets.screen.texture)
     this._screenOverlay.position.x = 733
     this._screenOverlay.position.y = 584
     this._room.addChild(this._screenOverlay)
 
-    this._room.pivot.x = GameApp.resources.room.texture.width / 2
-    this._room.pivot.y = GameApp.resources.room.texture.height / 2
+    this._room.pivot.x = Assets.room.texture.width / 2
+    this._room.pivot.y = Assets.room.texture.height / 2
     this._room.scale.x = 1.25
     this._room.scale.y = 1.25
 
@@ -341,7 +342,7 @@ export default class StageScene extends SceneBase {
     colorLayer.endFill()
     this._statsPiecesUi.addChild(colorLayer)
 
-    const piecesOverlay = new SubSprite(GameApp.resources.stage.texture, statsRect)
+    const piecesOverlay = new SubSprite(Assets.stage.texture, statsRect)
     piecesOverlay.scale.x = 2
     piecesOverlay.scale.y = 2
     this._statsPiecesUi.addChild(piecesOverlay)
@@ -1001,8 +1002,8 @@ export default class StageScene extends SceneBase {
     }
 
     if (scale === defaultScale) {
-      const minWidth = this._inCrisisMode ? CELL_SIZE * 10 : GameApp.resources.screen.texture.width * 1.1
-      const minHeight = this._inCrisisMode ? CELL_SIZE * 12 : GameApp.resources.screen.texture.height * 1.1
+      const minWidth = this._inCrisisMode ? CELL_SIZE * 10 : Assets.screen.texture.width * 1.1
+      const minHeight = this._inCrisisMode ? CELL_SIZE * 12 : Assets.screen.texture.height * 1.1
 
       // Then check min width
       if (width < minWidth) {
@@ -1036,7 +1037,7 @@ export default class StageScene extends SceneBase {
       this._touchDpad.position.y = -60
 
       if (narrowScreen) {
-        const controllerTexture = GameApp.resources.controller.texture
+        const controllerTexture = Assets.controller.texture
         const controllerScale = width / controllerTexture.width
         this._touchController.scale.x = controllerScale
         this._touchController.scale.y = controllerScale
@@ -1185,10 +1186,10 @@ export default class StageScene extends SceneBase {
   }
 
   private _setupTouchControls(): void {
-    const onScreenControlsTexture = GameApp.resources.onScreenControls.texture
+    const onScreenControlsTexture = Assets.onScreenControls.texture
 
     // Pause button
-    const pauseBtn = new SubSprite(GameApp.resources.ui.texture, new Pixi.Rectangle(16, 34, 14, 14))
+    const pauseBtn = new SubSprite(Assets.ui.texture, new Pixi.Rectangle(16, 34, 14, 14))
     pauseBtn.scale.x = 2
     pauseBtn.scale.y = 2
     pauseBtn.position.x = 16

@@ -1,3 +1,5 @@
+import { preload as preloadAssets } from 'game/assets'
+
 declare var __DEV__: boolean
 
 declare class FontFace {
@@ -83,7 +85,7 @@ function loadGame(): void {
       }
     }
 
-    await app.preload()
+    await preloadAssets(app)
     app.run()
     hideSplash()
     registerSW()

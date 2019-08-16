@@ -1,5 +1,5 @@
 import * as Pixi from 'pixi.js'
-import Game from 'game/app'
+import Assets from 'game/assets'
 import SubSprite from 'game/utils/subsprite'
 
 export const BLOCK_SIZE = 16
@@ -25,7 +25,7 @@ export default class Block extends Pixi.Container {
     this.addChild(filling)
 
     const blockType = BLOCK_TYPE[type]
-    const sprite = new SubSprite(Game.resources.stage.texture, blockType)
+    const sprite = new SubSprite(Assets.stage.texture, blockType)
     sprite.scale.x = 2
     sprite.scale.y = 2
     this.addChild(sprite)
