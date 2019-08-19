@@ -450,7 +450,7 @@ export default class SettingsScene extends SceneBase {
   }
 
   private actionStartGame(touch = false): void {
-    if (touch) this.requestFullScreen()
+    if (touch) this.requestFullscreen()
 
     this.app.sound.playSfx('beep')
 
@@ -467,7 +467,7 @@ export default class SettingsScene extends SceneBase {
   }
 
   private actionResumeGame(touch = false): void {
-    if (touch) this.requestFullScreen()
+    if (touch) this.requestFullscreen()
 
     this.app.sound.playSfx('pause')
 
