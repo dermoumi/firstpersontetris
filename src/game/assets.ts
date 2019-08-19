@@ -17,7 +17,7 @@ export type ResourceDict = Record<string, Pixi.LoaderResource>
 const Assets: ResourceDict = {}
 export default Assets
 
-export async function preload(app: GameApp): Promise<void> {
+export async function preload(app: GameApp, progressCallback?: (progress: number) => void): Promise<void> {
   const webpSupported = await isWebpSupported()
 
     // Setup loading as BLOB for some file types
@@ -28,6 +28,13 @@ export async function preload(app: GameApp): Promise<void> {
 
   // Load resources
   const loader = Pixi.Loader.shared
+
+  // Setup progress callback
+  if (progressCallback) {
+    loader.onProgress.add((loader: Pixi.Loader): void => {
+      progressCallback(loader.progress / 100)
+    })
+  }
 
   loader.add('stage', stage)
     .add('ui', ui)
