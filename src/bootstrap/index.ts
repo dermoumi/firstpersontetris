@@ -85,7 +85,12 @@ function loadGame(): void {
       }
     }
 
-    await preloadAssets(app)
+    await preloadAssets(app, (progress: number): void => {
+      const progressElement = document.querySelector('.loading-percent')
+      if (!progressElement) return
+      progressElement.textContent = `${Math.floor(progress * 100)}%`
+    })
+
     app.run()
     hideSplash()
     registerSW()

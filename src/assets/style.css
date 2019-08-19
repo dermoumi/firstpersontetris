@@ -23,6 +23,7 @@ body {
 #splash,
 noscript {
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
     text-align: center;
@@ -34,4 +35,8 @@ noscript {
     background-color: #000;
     color: #FFF;
     line-height: 1.5em;
+}
+
+#splash > * {
+    display: block;
 }
