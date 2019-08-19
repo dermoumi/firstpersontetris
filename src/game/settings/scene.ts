@@ -450,7 +450,7 @@ export default class SettingsScene extends SceneBase {
   }
 
   private actionStartGame(touch = false): void {
-    if (touch) document.body.requestFullscreen()
+    if (touch) this.requestFullscreen()
 
     this.app.sound.playSfx('beep')
 
@@ -467,7 +467,7 @@ export default class SettingsScene extends SceneBase {
   }
 
   private actionResumeGame(touch = false): void {
-    if (touch) document.body.requestFullscreen()
+    if (touch) this.requestFullscreen()
 
     this.app.sound.playSfx('pause')
 
@@ -517,4 +517,18 @@ export default class SettingsScene extends SceneBase {
     }
   }
 
+  private requestFullscreen(): void {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const body = document.body as any
+
+    if (body.requestFullscreen) {
+      body.requestFullscreen()
+    } else if (body.webkitRequestFullscreen) {
+      body.webkitRequestFullscreen()
+    } else if (body.mozRequestFullScreen) {
+      body.mozRequestFullScreen()
+    } else if (body.msRequestFullscreen) {
+      body.msRequestFullscreen()
+    }
+  }
 }
