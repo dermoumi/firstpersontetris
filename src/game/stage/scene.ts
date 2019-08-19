@@ -1037,12 +1037,7 @@ export default class StageScene extends SceneBase {
       this._touchDpad.position.y = -60
 
       if (narrowScreen) {
-        const controllerTexture = Assets.controller.texture
-        const controllerScale = width / controllerTexture.width
-        this._touchController.scale.x = controllerScale
-        this._touchController.scale.y = controllerScale
-
-        this._room.position.y = (height - controllerTexture.height * controllerScale) / 2
+        this._room.position.y = (height - 200) / 2
       } else {
         this._room.scale.x *= 1.5
         this._room.scale.y *= 1.5
