@@ -122,7 +122,7 @@ export default class StageScene extends SceneBase {
   private _downHeld = false
   private _xHoldTimer = 0
   private _yHoldTimer = 0
-  private _holdMinDuration = 0.18
+  private _holdMinDuration = 0.06
   private _holdRepeatInterval = 0.06
 
   private _dropStartY = -1
@@ -136,7 +136,6 @@ export default class StageScene extends SceneBase {
 
   private _touchControls = false
   private _touchContainer = new Pixi.Container()
-  private _touchController!: Pixi.Sprite
   private _touchDpad = new Pixi.Container()
   private _touchButtons = new Pixi.Container()
 
