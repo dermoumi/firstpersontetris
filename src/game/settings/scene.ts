@@ -104,6 +104,8 @@ export default class SettingsScene extends SceneBase {
   }
 
   private setupGameOverMenu(stageData: StageData): void {
+    this.app.sound.stopMusic()
+
     this.hiScore = stageData.hiScore
     this.saveSettings()
 
