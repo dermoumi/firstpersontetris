@@ -124,6 +124,7 @@ export default class StageScene extends SceneBase {
   private _yHoldTimer = 0
   private _holdMinDuration = 0.06
   private _holdRepeatInterval = 0.06
+  private _forceCheckInput = false
 
   private _dropStartY = -1
   private _yHoldStart = -1
@@ -437,8 +438,9 @@ export default class StageScene extends SceneBase {
 
     if (this._state === StageState.Idle) {
       directions.forEach((direction): void => {
-        if (player.isPressed(direction)) {
+        if (player.isPressed(direction) || (this._forceCheckInput && player.isDown(direction))) {
           this._pressAction(direction, angle)
+          this._forceCheckInput = false
         }
       })
 
@@ -611,7 +613,7 @@ export default class StageScene extends SceneBase {
     this._animationTime += frameTime
     if (this._animationTime > this._rotationDuration) {
       this._animationTime = this._rotationDuration
-      this._state = StageState.Idle
+      this.setState(StageState.Idle)
     }
 
     const percent = this._animationTime / this._rotationDuration
@@ -622,7 +624,7 @@ export default class StageScene extends SceneBase {
   private _updateRowAnimation(frameTime: number): void {
     if (this._animationTime === this._rowAnimationDuration) {
       // Shift back to the idle state and leave method
-      this._state = StageState.Idle
+      this.setState(StageState.Idle)
 
       // Update level
       this._updateLevel()
@@ -753,7 +755,7 @@ export default class StageScene extends SceneBase {
     }
 
     if (this._animateDrop) {
-      this._state = StageState.DropAnimation
+      this.setState(StageState.DropAnimation)
       this._animationTime = 0
       this._dropStartPos = this._currentTetromino.position.y - this._currentTetromino.pivot.y
     } else {
@@ -796,7 +798,7 @@ export default class StageScene extends SceneBase {
     if (this._animateRotation) {
       this._animationTime = 0
       this._currentTetromino.angle = -90
-      this._state = StageState.RotationAnimation
+      this.setState(StageState.RotationAnimation)
     } else {
       this._updateScreenRotation()
     }
@@ -851,7 +853,7 @@ export default class StageScene extends SceneBase {
     })
 
     this._animationTime = 0
-    this._state = StageState.RowAnimation
+    this.setState(StageState.RowAnimation)
   }
 
   private _setLevel(level: number): void {
@@ -895,7 +897,7 @@ export default class StageScene extends SceneBase {
   private _updateDropAnimation(frameTime: number): void {
     if (this._animationTime === this._dropAnimationDuration) {
       this._playerY = this._dropTargetY
-      this._state = StageState.Idle
+      this.setState(StageState.Idle)
       this._uniteTetromino()
       return
     }
@@ -914,7 +916,7 @@ export default class StageScene extends SceneBase {
 
   private _initGameOver(): void {
     this.app.sound.playSfx('over')
-    this._state = StageState.GameOver
+    this.setState(StageState.GameOver)
     this._animationTime = 0
 
     const baseRenderTexture = new Pixi.BaseRenderTexture({
@@ -1060,7 +1062,7 @@ export default class StageScene extends SceneBase {
       this._adjustCameraTarget = [x, y]
       this._adjustCameraSource = [this._room.pivot.x, this._room.pivot.y]
       this._animationTime = 0
-      this._state = StageState.AdjustingCamera
+      this.setState(StageState.AdjustingCamera)
     } else {
       this._room.pivot.x = x
       this._room.pivot.y = y
@@ -1078,7 +1080,7 @@ export default class StageScene extends SceneBase {
 
   private _updateCameraAdjustment(frameTime: number): void {
     if (this._animationTime === this._cameraAdjustTime) {
-      this._state = StageState.Idle
+      this.setState(StageState.Idle)
     }
 
     this._animationTime += frameTime
@@ -1351,5 +1353,11 @@ export default class StageScene extends SceneBase {
     dpad.addChild(dpadRight)
 
     this.stage.addChild(this._touchContainer)
+  }
+
+  private setState(newState: StageState): void {
+    if (this._state === newState) return
+    this._state = newState
+    this._forceCheckInput = (newState === StageState.Idle)
   }
 }
