@@ -122,7 +122,7 @@ export default class StageScene extends SceneBase {
   private _downHeld = false
   private _xHoldTimer = 0
   private _yHoldTimer = 0
-  private _holdMinDuration = 0.06
+  private _holdMinDuration = 0.1
   private _holdRepeatInterval = 0.06
   private _forceCheckInput = false
 
