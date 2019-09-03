@@ -51,7 +51,7 @@ export default class StageScene extends SceneBase {
   private _animationTime = 0
 
   private _animateRotation = true
-  private _rotationDuration = 0.2
+  private _rotationDuration = 0.15
 
   private _completeRows: CompleteRow[] = []
   private _completeRowsBlocks: Block[][] = []
@@ -122,7 +122,7 @@ export default class StageScene extends SceneBase {
   private _downHeld = false
   private _xHoldTimer = 0
   private _yHoldTimer = 0
-  private _holdMinDuration = 0.1
+  private _holdMinDuration = 0.12
   private _holdRepeatInterval = 0.06
   private _forceCheckInput = false
 
