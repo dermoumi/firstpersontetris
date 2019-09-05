@@ -547,7 +547,13 @@ export default class StageScene extends SceneBase {
   }
 
   private _getNextTetromino(): Tetromino {
-    const tetromino = Tetromino.getRandom()
+    let tetromino = Tetromino.getRandom()
+
+    // Get a different tetromino if it's the same as the last one
+    // But do this only once, just like in Tetris NES
+    if (this._currentTetromino && tetromino.name === this._currentTetromino.name) {
+      tetromino = Tetromino.getRandom()
+    }
 
     const [color1, color2] = this._getColors()
     tetromino.setColors(color1, color2)
